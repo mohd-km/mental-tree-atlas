@@ -1,20 +1,17 @@
 import { DOMAINS, DOMAIN_MAP } from '../data/domains.js';
-import { groupEssaysByDomain } from '../data/essays.js';
 
 export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
   let activeDomain = 'all';
   let searchQuery = '';
-  const expandedDomains = new Set();
-  const PREVIEW_LIMIT = 2;
+  let showAll = false;
+  const DEFAULT_LIMIT = 8;
 
   function getFilteredEssays() {
     const q = searchQuery.trim().toLowerCase();
     return essays.filter((essay) => {
       if (activeDomain !== 'all' && essay.domain !== activeDomain) return false;
       if (!q) return true;
-      const nodeTitles = essay.nodeIds
-        .map((id) => nodeMap.get(id)?.title || '')
-        .join(' ');
+      const nodeTitles = essay.nodeIds.map((id) => nodeMap.get(id)?.title || '').join(' ');
       const hay = `${essay.title} ${essay.rawTitle} ${essay.excerpt} ${nodeTitles}`.toLowerCase();
       return hay.includes(q);
     });
@@ -22,12 +19,12 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
 
   function render() {
     const counts = {};
-    for (const e of essays) {
-      counts[e.domain] = (counts[e.domain] || 0) + 1;
-    }
+    for (const e of essays) counts[e.domain] = (counts[e.domain] || 0) + 1;
 
     const filtered = getFilteredEssays();
-    const groups = groupEssaysByDomain(filtered);
+    const isFiltering = activeDomain !== 'all' || searchQuery.trim().length > 0;
+    const visible = isFiltering || showAll ? filtered : filtered.slice(0, DEFAULT_LIMIT);
+    const hiddenCount = filtered.length - visible.length;
 
     rootEl.innerHTML = `
       <div class="essays-toolbar">
@@ -37,7 +34,7 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
             class="filter-pill ${activeDomain === 'all' ? 'is-active' : ''}"
             data-essay-dom="all"
           >
-            All Domains (${essays.length})
+            All (${essays.length})
           </button>
           ${DOMAINS.map((d) => {
             const count = counts[d.id] || 0;
@@ -64,117 +61,78 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
             type="search"
             id="essays-search"
             class="graph-search"
-            placeholder="Filter essays by title, idea, or node..."
+            placeholder="Search 33 essays..."
             value="${escapeHtml(searchQuery)}"
             autocomplete="off"
             aria-label="Filter published essays"
           />
-          <span class="search-count">${filtered.length} ${filtered.length === 1 ? 'essay' : 'essays'}</span>
+          <span class="search-count">${filtered.length}</span>
         </div>
       </div>
 
       ${
-        groups.length === 0
-          ? `<div class="essays-empty">No published essays match "${escapeHtml(searchQuery)}". Clear the search or select another domain.</div>`
-          : `<div class="essays-groups">
-              ${groups
-                .map(({ domain, essays: domainEssays }) => {
-                  const isFiltered = activeDomain !== 'all' || searchQuery.trim().length > 0;
-                  const isExpanded = isFiltered || expandedDomains.has(domain.id);
-                  const visibleEssays = isExpanded ? domainEssays : domainEssays.slice(0, PREVIEW_LIMIT);
-                  const hiddenCount = domainEssays.length - visibleEssays.length;
-
+        visible.length === 0
+          ? `<div class="essays-empty">No essays match "${escapeHtml(searchQuery)}".</div>`
+          : `<div class="essays-compact-list">
+              ${visible
+                .map((essay) => {
+                  const dom = DOMAIN_MAP[essay.domain];
+                  const linkedNodes = essay.nodeIds.map((id) => nodeMap.get(id)).filter(Boolean);
                   return `
-                    <div class="essay-domain-group">
-                      <div class="essay-domain-head">
-                        <div class="essay-domain-title-row">
-                          <span class="dot" style="background: ${domain.color}"></span>
-                          <h3>${escapeHtml(domain.name)}</h3>
-                          <span class="essay-domain-count">${domainEssays.length} ${domainEssays.length === 1 ? 'essay' : 'essays'}</span>
-                        </div>
-                        <p class="essay-domain-desc">${escapeHtml(domain.description)}</p>
+                    <article class="essay-row">
+                      <div class="essay-row-main">
+                        <span class="dot" style="background: ${dom.color}" title="${escapeHtml(dom.name)}"></span>
+                        <a
+                          href="${escapeHtml(essay.url)}"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="essay-row-title"
+                        >
+                          ${escapeHtml(essay.title)} &rarr;
+                        </a>
+                        <span class="essay-row-dom">${escapeHtml(dom.short)}</span>
                       </div>
-
-                      <div class="essays-grid">
-                        ${visibleEssays
-                          .map((essay) => {
-                            const dom = DOMAIN_MAP[essay.domain];
-                            const linkedNodes = essay.nodeIds
-                              .map((id) => nodeMap.get(id))
-                              .filter(Boolean);
-
-                            return `
-                              <article class="essay-card" style="--essay-accent: ${dom.color}">
-                                <div class="essay-card-top">
-                                  <span class="essay-card-domain" style="color: ${dom.color}">${escapeHtml(dom.short)}</span>
-                                  <span class="essay-card-host">mohammed-km.in</span>
-                                </div>
-                                <h4 class="essay-card-title">
-                                  <a href="${escapeHtml(essay.url)}" target="_blank" rel="noopener noreferrer">
-                                    ${escapeHtml(essay.title)}
-                                  </a>
-                                </h4>
-                                <p class="essay-card-excerpt">${escapeHtml(essay.excerpt)}</p>
-                                ${
-                                  linkedNodes.length > 0
-                                    ? `
-                                  <div class="essay-node-chips" aria-label="Linked knowledge graph concepts">
-                                    ${linkedNodes
-                                      .map(
-                                        (n) => `
-                                      <button
-                                        type="button"
-                                        class="essay-node-chip"
-                                        data-essay-jump-node="${n.id}"
-                                        title="Inspect ${escapeHtml(n.title)} in Knowledge Graph"
-                                      >
-                                        <span class="dot" style="background: ${DOMAIN_MAP[n.domain].color}"></span>
-                                        ${escapeHtml(n.title)}
-                                      </button>
-                                    `
-                                      )
-                                      .join('')}
-                                  </div>
-                                `
-                                    : ''
-                                }
-                                <div class="essay-card-footer">
-                                  <a
-                                    href="${escapeHtml(essay.url)}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="essay-read-link"
-                                  >
-                                    Read Mohammed's Essay &rarr;
-                                  </a>
-                                </div>
-                              </article>
-                            `;
-                          })
-                          .join('')}
-                      </div>
-
-                      ${
-                        !isFiltered && domainEssays.length > PREVIEW_LIMIT
-                          ? `
-                        <div class="essay-domain-toggle-row">
+                      <div class="essay-row-chips">
+                        ${linkedNodes
+                          .map(
+                            (n) => `
                           <button
                             type="button"
-                            class="btn-ghost essay-domain-toggle"
-                            data-toggle-domain="${domain.id}"
-                            aria-expanded="${isExpanded ? 'true' : 'false'}"
+                            class="essay-node-chip"
+                            data-essay-jump-node="${n.id}"
+                            title="Focus ${escapeHtml(n.title)} in graph"
                           >
-                            ${isExpanded ? 'Show fewer' : `Show all (${domainEssays.length})`}
+                            ${escapeHtml(n.title)}
                           </button>
-                        </div>
-                      `
+                        `
+                          )
+                          .join('')}
+                      </div>
+                      ${
+                        essay.excerpt
+                          ? `<details class="essay-excerpt-details">
+                               <summary>Summary</summary>
+                               <p>${escapeHtml(essay.excerpt)}</p>
+                             </details>`
                           : ''
                       }
-                    </div>
+                    </article>
                   `;
                 })
                 .join('')}
             </div>`
+      }
+
+      ${
+        !isFiltering && filtered.length > DEFAULT_LIMIT
+          ? `
+        <div class="essays-more-row">
+          <button type="button" class="btn-ghost" id="essays-toggle-all">
+            ${showAll ? 'Show compact list (8)' : `Show all ${filtered.length} essays (+${hiddenCount} more)`}
+          </button>
+        </div>
+      `
+          : ''
       }
     `;
 
@@ -194,32 +152,24 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
         const nextInput = rootEl.querySelector('#essays-search');
         if (nextInput) {
           nextInput.focus();
-          if (typeof cursorPos === 'number') {
-            nextInput.setSelectionRange(cursorPos, cursorPos);
-          }
+          if (typeof cursorPos === 'number') nextInput.setSelectionRange(cursorPos, cursorPos);
         }
       });
     }
 
     rootEl.querySelectorAll('[data-essay-jump-node]').forEach((chip) => {
       chip.addEventListener('click', () => {
-        if (onSelectNode) {
-          onSelectNode(chip.dataset.essayJumpNode);
-        }
+        if (onSelectNode) onSelectNode(chip.dataset.essayJumpNode);
       });
     });
 
-    rootEl.querySelectorAll('[data-toggle-domain]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const domId = btn.dataset.toggleDomain;
-        if (expandedDomains.has(domId)) {
-          expandedDomains.delete(domId);
-        } else {
-          expandedDomains.add(domId);
-        }
+    const toggleAllBtn = rootEl.querySelector('#essays-toggle-all');
+    if (toggleAllBtn) {
+      toggleAllBtn.addEventListener('click', () => {
+        showAll = !showAll;
         render();
       });
-    });
+    }
   }
 
   render();

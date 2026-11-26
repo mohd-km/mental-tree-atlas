@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Caudex:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Caudex:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./src/styles.css" />
@@ -36,7 +36,7 @@
   <body>
     <header class="site-header">
       <div class="container header-inner">
-        <a href="#top" class="brand">
+        <a href="#observatory" class="brand">
           <span class="brand-mark" aria-hidden="true"></span>
           <span class="brand-text">
             <span class="brand-title">Mental Tree &amp; Deep Research Atlas</span>
@@ -44,79 +44,34 @@
           </span>
         </a>
         <nav class="site-nav" aria-label="Primary navigation">
-          <a href="#observatory">Knowledge Graph</a>
-          <a href="#essays">Published Essays</a>
-          <a href="#stress-tester">4-Lens Stress-Tester</a>
-          <a href="#bookshelf">Canonical Bookshelf</a>
+          <a href="#observatory" class="is-active">Graph</a>
+          <a href="#stress-tester">4-Lens Rubric</a>
+          <a href="#essays">Essays</a>
+          <a href="#bookshelf">Books</a>
         </nav>
       </div>
     </header>
 
     <main id="top">
-      <!-- Editorial Hero -->
-      <section class="hero">
-        <div class="container hero-grid">
-          <div class="hero-copy">
-            <h1>A living map of how systems work, break, and compound.</h1>
-            <p class="hero-lead">
-              Built by Mohammed KM around one operating principle: <em>learn how things work, then build things that work.</em>
-              Explore 48 mental models across six disciplines linked to 33 essays on mohammed-km.in, stress-test a thesis across four lenses, and trace ideas to the 17 books behind them.
-            </p>
-            <div class="hero-actions">
-              <a href="#observatory" class="btn-primary">Explore the Graph</a>
-              <a href="#essays" class="btn-ghost">Published Essays</a>
-              <a href="#stress-tester" class="btn-ghost">4-Lens Stress-Tester</a>
-            </div>
-          </div>
-
-          <aside class="hero-telemetry" aria-label="Atlas index summary">
-            <div class="metric-card">
-              <span class="metric-value" id="stat-nodes">48</span>
-              <span class="metric-label">Mental Models</span>
-            </div>
-            <div class="metric-card">
-              <span class="metric-value" id="stat-bridges">55+</span>
-              <span class="metric-label">Cross-Domain Bridges</span>
-            </div>
-            <div class="metric-card">
-              <span class="metric-value">04</span>
-              <span class="metric-label">Diagnostic Lenses</span>
-            </div>
-            <div class="metric-card">
-              <span class="metric-value">17</span>
-              <span class="metric-label">Canonical Volumes</span>
-            </div>
-            <a href="#essays" class="metric-card metric-card-wide">
-              <span class="metric-value" id="stat-essays">33</span>
-              <span class="metric-label">Published Essays on mohammed-km.in &rarr;</span>
-            </a>
-          </aside>
-        </div>
-      </section>
-
-      <!-- Compact Sticky Section Jump Bar -->
-      <nav class="section-jump-bar" aria-label="Jump to section">
-        <div class="container jump-bar-inner">
-          <a href="#observatory" class="is-active">Graph</a>
-          <a href="#essays">Essays</a>
-          <a href="#stress-tester">Stress-Tester</a>
-          <a href="#bookshelf">Bookshelf</a>
-        </div>
-      </nav>
-
-      <!-- Section 1: Interactive Force-Directed Knowledge Graph -->
-      <section id="observatory" class="section observatory-section">
+      <!-- Visual Hero: Immediate Interactive Force-Directed Knowledge Graph -->
+      <section id="observatory" class="section observatory-hero">
         <div class="container">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">01 &middot; Knowledge Graph</p>
-              <h2>Cross-Domain Concept Map</h2>
+          <div class="hero-strip">
+            <div class="hero-headline">
+              <h1>How systems work, break, and compound.</h1>
+              <p class="hero-sub">
+                Drag nodes, bridge any two distant concepts across 33 essays &amp; 17 books, or drop your own thesis live onto the graph.
+              </p>
             </div>
-            <p class="section-desc">
-              Hover or tap any node to inspect its cross-domain bridges and linked essays. Drag to pan, filter by discipline, or search by concept and thinker.
-            </p>
+            <div class="hero-stats" aria-label="Atlas index counts">
+              <span class="stat-pill"><strong id="stat-nodes">48</strong> models</span>
+              <span class="stat-pill"><strong id="stat-bridges">55+</strong> bridges</span>
+              <a href="#essays" class="stat-pill stat-pill-link"><strong id="stat-essays">33</strong> essays</a>
+              <a href="#bookshelf" class="stat-pill stat-pill-link"><strong>17</strong> books</a>
+            </div>
           </div>
 
+          <!-- Filter & Search Row -->
           <div class="graph-toolbar">
             <div class="domain-filters" id="domain-filters" role="group" aria-label="Filter graph by domain"></div>
             <div class="graph-search-wrap">
@@ -128,7 +83,7 @@
                 type="search"
                 id="graph-search"
                 class="graph-search"
-                placeholder="Search concepts, thinkers, or principles (press /)"
+                placeholder="Search concepts or thinkers (/)"
                 autocomplete="off"
                 aria-label="Search knowledge graph nodes"
               />
@@ -138,29 +93,28 @@
 
           <div class="active-book-banner" id="active-book-banner" hidden>
             <span id="active-book-text"></span>
-            <button type="button" class="btn-mini" id="clear-book-filter">Clear Volume Filter</button>
+            <button type="button" class="btn-mini" id="clear-book-filter">Clear Filter</button>
           </div>
 
+          <!-- Interactive Force-Directed Canvas Stage -->
           <div class="observatory-stage" id="observatory-stage">
             <canvas id="graph-canvas" aria-label="Interactive force-directed knowledge graph"></canvas>
 
-            <!-- Floating Hover Tooltip -->
             <div class="graph-tooltip" id="graph-tooltip" hidden></div>
 
-            <!-- Canvas HUD Controls -->
             <div class="graph-hud-bottom">
               <div class="hud-toggles">
                 <button type="button" class="hud-btn" id="toggle-cross-only" aria-pressed="false">
-                  Cross-Domain Bridges Only
+                  Cross-Domain Only
                 </button>
                 <button type="button" class="hud-btn" id="toggle-labels" aria-pressed="false">
-                  Show All Labels
+                  All Labels
                 </button>
               </div>
               <div class="hud-zoom">
                 <button type="button" class="hud-icon-btn" id="zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
                 <button type="button" class="hud-icon-btn" id="zoom-out" title="Zoom out" aria-label="Zoom out">&minus;</button>
-                <button type="button" class="hud-btn" id="zoom-reset">Reset View</button>
+                <button type="button" class="hud-btn" id="zoom-reset">Reset</button>
               </div>
             </div>
 
@@ -176,56 +130,134 @@
               <div class="drawer-body" id="drawer-body"></div>
             </aside>
           </div>
+
+          <!-- Interactive Lab Controls: Shortest-Path Bridge + Custom Thesis Dropper -->
+          <div class="atlas-lab-grid">
+            <!-- Shortest-Path Concept Bridge -->
+            <div class="lab-card" id="bridge-panel">
+              <div class="lab-card-head">
+                <div>
+                  <span class="eyebrow">Shortest-Path Concept Bridge</span>
+                  <p class="lab-sub">Pick any 2 distant concepts to trace the shortest path across essays &amp; books.</p>
+                </div>
+                <button type="button" class="btn-mini" id="bridge-clear" hidden>Clear Bridge</button>
+              </div>
+
+              <div class="bridge-controls">
+                <select id="bridge-start" class="lab-select" aria-label="Starting concept"></select>
+                <span class="bridge-arrow" aria-hidden="true">&rarr;</span>
+                <select id="bridge-end" class="lab-select" aria-label="Target concept"></select>
+                <button type="button" class="btn-primary lab-btn" id="bridge-run">Trace Path</button>
+              </div>
+
+              <div class="bridge-presets" aria-label="Quick distant concept bridges">
+                <span class="presets-label">Try:</span>
+                <button
+                  type="button"
+                  class="preset-chip"
+                  data-bridge-start="quantum-simulation"
+                  data-bridge-end="dopamine-homeostasis"
+                >
+                  Quantum &rarr; Dopamine
+                </button>
+                <button
+                  type="button"
+                  class="preset-chip"
+                  data-bridge-start="first-principles-physics"
+                  data-bridge-end="character-invariants"
+                >
+                  Physics Floor &rarr; Character
+                </button>
+                <button
+                  type="button"
+                  class="preset-chip"
+                  data-bridge-start="strange-loops"
+                  data-bridge-end="medicine-3-0"
+                >
+                  Strange Loops &rarr; Medicine 3.0
+                </button>
+              </div>
+
+              <div class="bridge-result" id="bridge-result" hidden></div>
+            </div>
+
+            <!-- Drop Temporary Custom Thesis Node -->
+            <div class="lab-card" id="thesis-panel">
+              <div class="lab-card-head">
+                <div>
+                  <span class="eyebrow">Drop Custom Thesis Node</span>
+                  <p class="lab-sub">Test where your own idea attaches on the live force-directed graph.</p>
+                </div>
+                <button type="button" class="btn-mini" id="thesis-remove" hidden>Remove Node</button>
+              </div>
+
+              <form class="thesis-form" id="thesis-drop-form">
+                <input
+                  type="text"
+                  id="thesis-input"
+                  class="lab-input"
+                  placeholder="e.g., Local-first AI agents for small clinics"
+                  autocomplete="off"
+                  aria-label="Custom thesis to drop onto the graph"
+                />
+                <div class="thesis-form-row">
+                  <select id="thesis-domain" class="lab-select" aria-label="Thesis domain">
+                    <option value="auto">Domain: Auto-detect</option>
+                  </select>
+                  <button type="submit" class="btn-primary lab-btn">Drop on Graph</button>
+                </div>
+              </form>
+
+              <div class="thesis-status" id="thesis-status" hidden></div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- Section 2: Published Essays Index -->
-      <section id="essays" class="section essays-section">
+      <!-- Section 2: Interactive 4-Lens First-Principles Stress-Tester -->
+      <section id="stress-tester" class="section">
         <div class="container">
           <div class="section-head">
             <div>
-              <p class="eyebrow">02 &middot; Published Writing Archive</p>
-              <h2>Published Essays Index</h2>
+              <p class="eyebrow">02 &middot; First-Principles Rubric</p>
+              <h2>4-Lens Stress-Tester</h2>
             </div>
             <p class="section-desc">
-              Mohammed KM's published essays from mohammed-km.in, grouped by domain and cross-linked to the Knowledge Graph concepts they explore. Filter by discipline, search by idea, or jump straight into the corresponding graph nodes.
+              Score a thesis live across Deutsch, Taleb, Musk, and Meadows, then drop it onto the graph.
             </p>
           </div>
-
-          <div id="essays-root"></div>
-        </div>
-      </section>
-
-      <!-- Section 3: Interactive 4-Lens First-Principles Stress-Tester -->
-      <section id="stress-tester" class="section stress-section">
-        <div class="container">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">03 &middot; First-Principles Rubric</p>
-              <h2>4-Lens First-Principles Stress-Tester</h2>
-            </div>
-            <p class="section-desc">
-              Examine five hand-scored venture theses or enter your own claim. Custom theses run a client-side keyword heuristic checklist (not an LLM judgement) to pre-fill the rubric, which you can toggle live across Deutsch, Taleb, Musk, and Meadows.
-            </p>
-          </div>
-
           <div id="stress-tester-root"></div>
         </div>
       </section>
 
-      <!-- Section 4: Canonical Bookshelf Strip -->
-      <section id="bookshelf" class="section bookshelf-section">
+      <!-- Section 3: Compact Published Essays Index -->
+      <section id="essays" class="section">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">03 &middot; Published Writing</p>
+              <h2>33 Essays on mohammed-km.in</h2>
+            </div>
+            <p class="section-desc">
+              Filter by discipline or tap any concept chip to jump straight to that node on the graph.
+            </p>
+          </div>
+          <div id="essays-root"></div>
+        </div>
+      </section>
+
+      <!-- Section 4: Compact Canonical Bookshelf -->
+      <section id="bookshelf" class="section">
         <div class="container">
           <div class="section-head">
             <div>
               <p class="eyebrow">04 &middot; Reading Canon</p>
-              <h2>Canonical Bookshelf</h2>
+              <h2>17 Canonical Volumes</h2>
             </div>
             <p class="section-desc">
-              Seventeen core volumes spanning epistemology, physics, computing, biology, markets, systems dynamics, and character craft—distilled to their operative one-line mental models.
+              Foundational texts distilled to their operative mental models and linked to the graph.
             </p>
           </div>
-
           <div id="bookshelf-root"></div>
         </div>
       </section>
@@ -236,13 +268,13 @@
         <div>
           <p class="footer-title">Mental Tree &amp; Deep Research Atlas</p>
           <p class="footer-note">
-            Curated by Mohammed KM. Static client-side publication — zero tracking, zero external API dependencies.
+            Curated by Mohammed KM. 100% client-side, zero external APIs.
           </p>
         </div>
         <div class="footer-links">
-          <a href="#observatory">Observatory</a>
-          <a href="#essays">Published Essays</a>
+          <a href="#observatory">Graph</a>
           <a href="#stress-tester">4-Lens Rubric</a>
+          <a href="#essays">33 Essays</a>
           <a href="#bookshelf">17 Books</a>
         </div>
       </div>

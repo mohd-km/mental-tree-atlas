@@ -4,8 +4,8 @@ export const DOMAINS = [
     name: 'AI & Computing',
     short: 'AI & Compute',
     code: 'AIC',
-    color: '#818cf8',
-    glow: 'rgba(129, 140, 248, 0.32)',
+    color: '#1d4ed8',
+    glow: 'rgba(29, 78, 216, 0.14)',
     angle: -Math.PI / 2,
     description: 'Computational intelligence, pattern hierarchies, alignment, and software leverage.'
   },
@@ -14,8 +14,8 @@ export const DOMAINS = [
     name: 'Physics & Energy',
     short: 'Physics & Energy',
     code: 'PHY',
-    color: '#eab308',
-    glow: 'rgba(234, 179, 8, 0.30)',
+    color: '#b45309',
+    glow: 'rgba(180, 83, 9, 0.14)',
     angle: -Math.PI / 6,
     description: 'Thermodynamic limits, quantum substrates, energy transitions, and industrial hardware.'
   },
@@ -24,8 +24,8 @@ export const DOMAINS = [
     name: 'Biology & Longevity',
     short: 'Bio & Longevity',
     code: 'BIO',
-    color: '#2dd4bf',
-    glow: 'rgba(45, 212, 191, 0.30)',
+    color: '#0f766e',
+    glow: 'rgba(15, 118, 110, 0.14)',
     angle: Math.PI / 6,
     description: 'Medicine 3.0, metabolic architecture, evolutionary information, and neurochemical balance.'
   },
@@ -34,8 +34,8 @@ export const DOMAINS = [
     name: 'Economics & Strategy',
     short: 'Econ & Strategy',
     code: 'ECO',
-    color: '#fb923c',
-    glow: 'rgba(251, 146, 60, 0.30)',
+    color: '#c2410c',
+    glow: 'rgba(194, 65, 12, 0.14)',
     angle: Math.PI / 2,
     description: 'Convexity, permissionless leverage, bottom-up innovation, and fat-tailed markets.'
   },
@@ -44,8 +44,8 @@ export const DOMAINS = [
     name: 'Systems & Epistemology',
     short: 'Systems & Epist.',
     code: 'SYS',
-    color: '#38bdf8',
-    glow: 'rgba(56, 189, 248, 0.32)',
+    color: '#0369a1',
+    glow: 'rgba(3, 105, 161, 0.14)',
     angle: (5 * Math.PI) / 6,
     description: 'Hard-to-vary explanations, feedback loops, fractals, and self-referential structure.'
   },
@@ -54,8 +54,8 @@ export const DOMAINS = [
     name: 'Character & Craft',
     short: 'Character & Craft',
     code: 'CHR',
-    color: '#c084fc',
-    glow: 'rgba(192, 132, 252, 0.30)',
+    color: '#6d28d9',
+    glow: 'rgba(109, 40, 217, 0.14)',
     angle: (-5 * Math.PI) / 6,
     description: 'Moral invariants, attention architecture, radical simplification, and civilizational perspective.'
   }

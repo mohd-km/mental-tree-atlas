@@ -5,7 +5,7 @@ import {
   computeVerdict
 } from '../data/stressTester.js';
 
-export function initStressTester(rootEl) {
+export function initStressTester(rootEl, onDropThesisOnGraph) {
   let activePresetId = SAMPLE_THESES[0].id;
   let currentThesis = SAMPLE_THESES[0].thesis;
   let currentTitle = SAMPLE_THESES[0].label;
@@ -38,21 +38,27 @@ export function initStressTester(rootEl) {
 
   function renderRadarSvg(lensScores) {
     const cx = 140;
-    const cy = 120;
+    const cy = 118;
     const maxR = 76;
     const axes = [
-      { id: 'deutsch', label: 'Deutsch', angle: -Math.PI / 2, color: '#38bdf8' },
-      { id: 'taleb', label: 'Taleb', angle: 0, color: '#fb923c' },
-      { id: 'musk', label: 'Musk', angle: Math.PI / 2, color: '#eab308' },
-      { id: 'meadows', label: 'Meadows', angle: Math.PI, color: '#2dd4bf' }
+      { id: 'deutsch', label: 'Deutsch', angle: -Math.PI / 2, color: '#0369a1' },
+      { id: 'taleb', label: 'Taleb', angle: 0, color: '#c2410c' },
+      { id: 'musk', label: 'Musk', angle: Math.PI / 2, color: '#b45309' },
+      { id: 'meadows', label: 'Meadows', angle: Math.PI, color: '#0f766e' }
     ];
 
     const rings = [0.25, 0.5, 0.75, 1]
       .map((f) => {
         const pts = axes
-          .map((a) => `${(cx + Math.cos(a.angle) * maxR * f).toFixed(1)},${(cy + Math.sin(a.angle) * maxR * f).toFixed(1)}`)
+          .map(
+            (a) =>
+              `${(cx + Math.cos(a.angle) * maxR * f).toFixed(1)},${(
+                cy +
+                Math.sin(a.angle) * maxR * f
+              ).toFixed(1)}`
+          )
           .join(' ');
-        return `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />`;
+        return `<polygon points="${pts}" fill="none" stroke="#e5e5e3" stroke-width="1" />`;
       })
       .join('');
 
@@ -60,14 +66,17 @@ export function initStressTester(rootEl) {
       .map((a) => {
         const x2 = (cx + Math.cos(a.angle) * maxR).toFixed(1);
         const y2 = (cy + Math.sin(a.angle) * maxR).toFixed(1);
-        return `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.1)" stroke-width="1" />`;
+        return `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#d6d3d1" stroke-width="1" />`;
       })
       .join('');
 
     const dataPts = axes
       .map((a) => {
         const ratio = Math.max(0.12, lensScores[a.id].score / 25);
-        return `${(cx + Math.cos(a.angle) * maxR * ratio).toFixed(1)},${(cy + Math.sin(a.angle) * maxR * ratio).toFixed(1)}`;
+        return `${(cx + Math.cos(a.angle) * maxR * ratio).toFixed(1)},${(
+          cy +
+          Math.sin(a.angle) * maxR * ratio
+        ).toFixed(1)}`;
       })
       .join(' ');
 
@@ -76,24 +85,28 @@ export function initStressTester(rootEl) {
         const ratio = Math.max(0.12, lensScores[a.id].score / 25);
         const x = (cx + Math.cos(a.angle) * maxR * ratio).toFixed(1);
         const y = (cy + Math.sin(a.angle) * maxR * ratio).toFixed(1);
-        return `<circle cx="${x}" cy="${y}" r="4" fill="${a.color}" stroke="#090b10" stroke-width="1.5" />`;
+        return `<circle cx="${x}" cy="${y}" r="4.5" fill="${a.color}" stroke="#ffffff" stroke-width="1.8" />`;
       })
       .join('');
 
     const labels = axes
       .map((a) => {
-        const lx = cx + Math.cos(a.angle) * (maxR + 14);
+        const lx = cx + Math.cos(a.angle) * (maxR + 15);
         const ly = cy + Math.sin(a.angle) * (maxR + 15);
         const anchor = a.angle === 0 ? 'start' : a.angle === Math.PI ? 'end' : 'middle';
-        return `<text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" text-anchor="${anchor}" fill="${a.color}" font-size="11" font-family="Inter, sans-serif" font-weight="600">${a.label}</text>`;
+        return `<text x="${lx.toFixed(1)}" y="${(ly + 4).toFixed(
+          1
+        )}" text-anchor="${anchor}" fill="${a.color}" font-size="12" font-family="Inter, sans-serif" font-weight="600">${
+          a.label
+        }</text>`;
       })
       .join('');
 
     return `
-      <svg viewBox="0 0 280 240" class="radar-svg" role="img" aria-label="Four-lens diagnostic score radar">
+      <svg viewBox="0 0 280 236" class="radar-svg" role="img" aria-label="Four-lens diagnostic score radar">
         ${rings}
         ${spokes}
-        <polygon points="${dataPts}" fill="rgba(129, 140, 248, 0.22)" stroke="#818cf8" stroke-width="1.8" />
+        <polygon points="${dataPts}" fill="rgba(29, 78, 216, 0.14)" stroke="#1d4ed8" stroke-width="2" />
         ${dots}
         ${labels}
       </svg>
@@ -131,52 +144,47 @@ export function initStressTester(rootEl) {
 
     rootEl.innerHTML = `
       <div class="st-controls">
-        <div class="st-presets" role="group" aria-label="Sample startup theses">
-          <span class="st-presets-label">Sample Theses</span>
-          <div class="st-chip-row">
-            ${SAMPLE_THESES.map(
-              (s) => `
-              <button
-                type="button"
-                class="st-chip ${activePresetId === s.id ? 'is-active' : ''}"
-                data-preset="${s.id}"
-              >
-                <span class="st-chip-title">${s.label}</span>
-                <span class="st-chip-tag">${s.tag}</span>
-              </button>
-            `
-            ).join('')}
-          </div>
+        <div class="st-chip-row" role="group" aria-label="Sample startup theses">
+          ${SAMPLE_THESES.map(
+            (s) => `
+            <button
+              type="button"
+              class="st-chip ${activePresetId === s.id ? 'is-active' : ''}"
+              data-preset="${s.id}"
+            >
+              <span class="st-chip-title">${s.label}</span>
+              <span class="st-chip-tag">${s.tag}</span>
+            </button>
+          `
+          ).join('')}
         </div>
 
         <form class="st-input-form" id="st-form">
-          <label for="st-textarea" class="st-input-label">
-            Startup Thesis, Product Claim, or Strategic Bet
-            <span class="st-deterministic-badge">Keyword heuristic checklist (client-side, not an LLM judgement)</span>
-          </label>
           <div class="st-input-row">
-            <textarea
+            <input
+              type="text"
               id="st-textarea"
-              class="st-textarea"
-              rows="2"
-              placeholder="Enter any startup thesis or claim (e.g., Autonomous solar-powered cold-chain micro-hubs for rural agricultural cooperatives...)"
-            >${escapeHtml(currentThesis)}</textarea>
-            <button type="submit" class="btn-primary st-run-btn">Run 4-Lens Audit</button>
+              class="st-text-input"
+              value="${escapeHtml(currentThesis)}"
+              placeholder="Enter any startup thesis or claim to audit across 4 lenses..."
+              aria-label="Startup thesis or strategic claim"
+            />
+            <button type="submit" class="btn-primary st-run-btn">Run Audit</button>
           </div>
-          <p class="st-honest-note">
-            Sample theses carry hand-crafted editorial assessments. Custom theses use a lightweight keyword heuristic checklist (client-side, not an LLM judgement) to pre-fill the rubric—toggle any checkbox below to reflect your real assumptions.
-          </p>
         </form>
       </div>
 
       <div class="st-summary-strip">
+        <div class="st-radar-block">
+          ${renderRadarSvg(lensScores)}
+        </div>
+
         <div class="st-score-block">
           <div class="st-score-meta">
-            <span class="st-eyebrow">Composite Resilience Index</span>
             <div class="st-score-number">
               <span class="st-score-val">${total}</span><span class="st-score-den">/100</span>
             </div>
-            <div class="st-verdict-badge tone-${verdict.tone}">${verdict.band}</div>
+            <span class="st-verdict-badge tone-${verdict.tone}">${verdict.band}</span>
           </div>
           <p class="st-verdict-copy">${verdict.summary}</p>
           <div class="st-bars">
@@ -195,28 +203,22 @@ export function initStressTester(rootEl) {
             }).join('')}
           </div>
           <div class="st-summary-actions">
+            <button type="button" class="btn-primary" id="st-drop-graph-btn">Drop Thesis onto Graph &uarr;</button>
             <button type="button" class="btn-ghost" id="st-copy-btn">Copy Markdown Brief</button>
-            <span class="st-interactive-hint">Toggle any diagnostic criterion below to stress-test your assumptions live.</span>
           </div>
-        </div>
-        <div class="st-radar-block">
-          ${renderRadarSvg(lensScores)}
         </div>
       </div>
 
       <div class="st-lenses-grid">
-        ${LENS_META.map((meta, lensIdx) => {
+        ${LENS_META.map((meta) => {
           const data = currentAnalysis[meta.id];
           const sc = lensScores[meta.id];
-          const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-          const detailsOpen = !isMobile ? 'open' : '';
           return `
             <article class="st-lens-card" style="--lens-color: ${meta.color}">
               <header class="st-lens-head">
                 <div>
-                  <span class="st-lens-domain">${meta.domain}</span>
+                  <span class="st-lens-domain">${meta.domain} &middot; ${meta.framework}</span>
                   <h3 class="st-lens-title">${meta.thinker}</h3>
-                  <p class="st-lens-framework">${meta.framework}</p>
                 </div>
                 <div class="st-lens-score">
                   <span>${sc.score}</span><small>/25</small>
@@ -225,32 +227,33 @@ export function initStressTester(rootEl) {
 
               <p class="st-lens-summary">${escapeHtml(data.summary)}</p>
 
-              <details class="st-lens-details" ${detailsOpen}>
+              <details class="st-lens-details">
                 <summary class="st-lens-details-toggle">
-                  Diagnostic breakdown &amp; rubric (${sc.passed}/${sc.total} passed)
+                  Rubric &amp; failure modes (${sc.passed}/${sc.total} passed)
                 </summary>
                 <div class="st-lens-details-body">
                   <p class="st-lens-question">${meta.question}</p>
 
                   ${
                     data.leverageLevel
-                      ? `<div class="st-leverage-pill"><span>Detected Leverage Point</span><strong>${escapeHtml(data.leverageLevel)}</strong></div>`
+                      ? `<div class="st-leverage-pill"><span>Leverage Point</span><strong>${escapeHtml(
+                          data.leverageLevel
+                        )}</strong></div>`
                       : ''
                   }
 
                   <div class="st-diagnostic-blocks">
                     <div class="st-diag-box is-risk">
-                      <span class="st-diag-label">Primary Failure Mode</span>
+                      <span class="st-diag-label">Failure Mode</span>
                       <p>${escapeHtml(data.failureMode)}</p>
                     </div>
                     <div class="st-diag-box is-action">
-                      <span class="st-diag-label">First-Principles Directive</span>
+                      <span class="st-diag-label">Directive</span>
                       <p>${escapeHtml(data.directive)}</p>
                     </div>
                   </div>
 
                   <div class="st-checklist">
-                    <span class="st-checklist-title">Interactive Diagnostic Rubric (${sc.passed}/${sc.total} passed)</span>
                     ${data.checks
                       .map(
                         (c, idx) => `
@@ -276,7 +279,6 @@ export function initStressTester(rootEl) {
       </div>
     `;
 
-    // Bind preset chips
     rootEl.querySelectorAll('[data-preset]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const preset = SAMPLE_THESES.find((s) => s.id === btn.dataset.preset);
@@ -289,13 +291,14 @@ export function initStressTester(rootEl) {
       });
     });
 
-    // Bind custom form submit
     const form = rootEl.querySelector('#st-form');
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const val = rootEl.querySelector('#st-textarea').value.trim();
       if (!val) return;
-      const matchedPreset = SAMPLE_THESES.find((s) => s.thesis.trim().toLowerCase() === val.toLowerCase());
+      const matchedPreset = SAMPLE_THESES.find(
+        (s) => s.thesis.trim().toLowerCase() === val.toLowerCase()
+      );
       if (matchedPreset) {
         activePresetId = matchedPreset.id;
         currentTitle = matchedPreset.label;
@@ -303,38 +306,54 @@ export function initStressTester(rootEl) {
         currentAnalysis = cloneAnalysis(matchedPreset.presetAnalysis);
       } else {
         activePresetId = null;
-        currentTitle = 'Custom Thesis';
+        currentTitle = val.length > 42 ? `${val.slice(0, 40)}...` : val;
         currentThesis = val;
         currentAnalysis = analyzeCustomThesis(val);
       }
       render();
     });
 
-    // Bind interactive checklist toggles
     rootEl.querySelectorAll('.st-check-item input[type="checkbox"]').forEach((input) => {
       input.addEventListener('change', () => {
         const lensId = input.dataset.lens;
         const idx = Number(input.dataset.idx);
         currentAnalysis[lensId].checks[idx].pass = input.checked;
+        // Preserve open state on details for the edited lens
+        const openLenses = new Set();
+        rootEl.querySelectorAll('.st-lens-card').forEach((card, i) => {
+          if (card.querySelector('details')?.open) openLenses.add(i);
+        });
         render();
+        rootEl.querySelectorAll('.st-lens-card').forEach((card, i) => {
+          if (openLenses.has(i)) {
+            const det = card.querySelector('details');
+            if (det) det.open = true;
+          }
+        });
       });
     });
 
-    // Bind copy markdown brief
+    const dropBtn = rootEl.querySelector('#st-drop-graph-btn');
+    if (dropBtn && onDropThesisOnGraph) {
+      dropBtn.addEventListener('click', () => {
+        onDropThesisOnGraph({ title: currentTitle, thesis: currentThesis });
+      });
+    }
+
     const copyBtn = rootEl.querySelector('#st-copy-btn');
     copyBtn.addEventListener('click', async () => {
       const md = buildMarkdownBrief();
       try {
         await navigator.clipboard.writeText(md);
-        copyBtn.textContent = 'Copied Brief to Clipboard';
+        copyBtn.textContent = 'Copied Brief';
         setTimeout(() => {
           copyBtn.textContent = 'Copy Markdown Brief';
-        }, 2000);
+        }, 1800);
       } catch {
-        copyBtn.textContent = 'Brief Ready (Clipboard Restricted)';
+        copyBtn.textContent = 'Clipboard Restricted';
         setTimeout(() => {
           copyBtn.textContent = 'Copy Markdown Brief';
-        }, 2000);
+        }, 1800);
       }
     });
   }

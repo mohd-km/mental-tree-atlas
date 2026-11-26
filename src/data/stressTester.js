@@ -4,7 +4,7 @@ export const LENS_META = [
     thinker: 'David Deutsch',
     framework: 'Hard-to-Vary Test',
     domain: 'Epistemology',
-    color: '#38bdf8',
+    color: '#0369a1',
     question: 'If you swap out a key mechanism, does the entire thesis collapse—or is it an interchangeable slogan?'
   },
   {
@@ -12,7 +12,7 @@ export const LENS_META = [
     thinker: 'Nassim Taleb',
     framework: 'Fragility & Tail Risk',
     domain: 'Risk Architecture',
-    color: '#fb923c',
+    color: '#c2410c',
     question: 'Does volatility, platform change, or a demand shock break the balance sheet—or create asymmetric upside?'
   },
   {
@@ -20,7 +20,7 @@ export const LENS_META = [
     thinker: 'Elon Musk',
     framework: '5-Step Deletion Algorithm',
     domain: 'First-Principles Engineering',
-    color: '#eab308',
+    color: '#b45309',
     question: 'What is the atomic/physics floor, and which requirements, parts, or steps should be deleted before automating?'
   },
   {
@@ -28,7 +28,7 @@ export const LENS_META = [
     thinker: 'Donella Meadows',
     framework: 'System Leverage Points',
     domain: 'Systems Dynamics',
-    color: '#2dd4bf',
+    color: '#0f766e',
     question: 'Are you tweaking low-leverage parameters, or altering information flows, rules, goals, and feedback loops?'
   }
 ];

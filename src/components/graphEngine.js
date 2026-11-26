@@ -1,5 +1,9 @@
 import { DOMAINS, DOMAIN_MAP } from '../data/domains.js';
 
+function edgeKey(a, b) {
+  return a < b ? `${a}::${b}` : `${b}::${a}`;
+}
+
 export class ObservatoryGraph {
   constructor(canvas, nodesData, linksData, callbacks = {}) {
     this.canvas = canvas;
@@ -20,6 +24,8 @@ export class ObservatoryGraph {
     this.crossDomainOnly = false;
     this.showAllLabels = false;
     this.highlightedBookNodeIds = null;
+    this.bridgePath = null; // { nodeIds, nodeSet, edgeKeys, edges }
+    this.customNodeId = null;
 
     this.hoveredNode = null;
     this.selectedNode = null;
@@ -30,7 +36,7 @@ export class ObservatoryGraph {
     this.pointerDownPos = { x: 0, y: 0 };
 
     // Build simulation nodes with deterministic seeded initial positions around domain anchors
-    const clusterRadius = 240;
+    const clusterRadius = 235;
     const domainCounts = {};
     this.nodes = nodesData.map((n, idx) => {
       const dom = DOMAIN_MAP[n.domain];
@@ -54,7 +60,8 @@ export class ObservatoryGraph {
         vy: 0,
         radius: 6.5 + (n.weight - 1) * 8.5,
         degree: 0,
-        crossDegree: 0
+        crossDegree: 0,
+        isCustom: false
       };
     });
 
@@ -65,45 +72,17 @@ export class ObservatoryGraph {
         const s = this.nodeMap.get(l.source);
         const t = this.nodeMap.get(l.target);
         if (!s || !t) return null;
-        const isCross = s.domain !== t.domain;
-        s.degree += 1;
-        t.degree += 1;
-        if (isCross) {
-          s.crossDegree += 1;
-          t.crossDegree += 1;
-        }
         return {
           source: s,
           target: t,
           relation: l.relation,
-          isCross
+          isCross: s.domain !== t.domain,
+          isCustomLink: false
         };
       })
       .filter(Boolean);
 
-    // Build adjacency map for fast hover lookup
-    this.neighbors = new Map();
-    for (const n of this.nodes) {
-      this.neighbors.set(n.id, new Set([n.id]));
-    }
-    for (const l of this.links) {
-      this.neighbors.get(l.source.id).add(l.target.id);
-      this.neighbors.get(l.target.id).add(l.source.id);
-    }
-
-    // Ambient starfield dots (deterministic)
-    this.stars = Array.from({ length: 110 }, (_, i) => {
-      const seed1 = Math.sin(i * 12.9898) * 43758.5453;
-      const seed2 = Math.sin(i * 78.233) * 43758.5453;
-      const rx = seed1 - Math.floor(seed1);
-      const ry = seed2 - Math.floor(seed2);
-      return {
-        x: (rx - 0.5) * 1800,
-        y: (ry - 0.5) * 1400,
-        r: 0.6 + (i % 3) * 0.45,
-        a: 0.08 + (i % 5) * 0.045
-      };
-    });
+    this.rebuildAdjacency();
 
     // Warm-start layout so graph appears composed on first frame
     for (let i = 0; i < 160; i++) {
@@ -118,6 +97,209 @@ export class ObservatoryGraph {
     this.fitToView(false);
     this.bindEvents();
     this.start();
+  }
+
+  rebuildAdjacency() {
+    this.nodeMap = new Map(this.nodes.map((n) => [n.id, n]));
+    this.neighbors = new Map();
+    for (const n of this.nodes) {
+      n.degree = 0;
+      n.crossDegree = 0;
+      this.neighbors.set(n.id, new Set([n.id]));
+    }
+    for (const l of this.links) {
+      l.isCross = l.source.domain !== l.target.domain;
+      l.source.degree += 1;
+      l.target.degree += 1;
+      if (l.isCross) {
+        l.source.crossDegree += 1;
+        l.target.crossDegree += 1;
+      }
+      this.neighbors.get(l.source.id).add(l.target.id);
+      this.neighbors.get(l.target.id).add(l.source.id);
+    }
+  }
+
+  getAllLinksForNode(nodeId) {
+    return this.links
+      .filter((l) => l.source.id === nodeId || l.target.id === nodeId)
+      .map((l) => {
+        const other = l.source.id === nodeId ? l.target : l.source;
+        return { other, relation: l.relation, isCross: other.domain !== this.nodeMap.get(nodeId)?.domain };
+      });
+  }
+
+  // Shortest-Path Concept Bridge (BFS across all active nodes & links)
+  findShortestPath(startId, endId) {
+    if (!startId || !endId || !this.nodeMap.has(startId) || !this.nodeMap.has(endId)) {
+      return null;
+    }
+    if (startId === endId) {
+      return {
+        nodeIds: [startId],
+        nodeSet: new Set([startId]),
+        edgeKeys: new Set(),
+        edges: []
+      };
+    }
+
+    const adj = new Map();
+    for (const n of this.nodes) adj.set(n.id, []);
+    for (const l of this.links) {
+      adj.get(l.source.id).push({ to: l.target.id, link: l });
+      adj.get(l.target.id).push({ to: l.source.id, link: l });
+    }
+
+    const queue = [startId];
+    const visited = new Set([startId]);
+    const parent = new Map();
+
+    let found = false;
+    while (queue.length > 0) {
+      const curr = queue.shift();
+      if (curr === endId) {
+        found = true;
+        break;
+      }
+      for (const { to, link } of adj.get(curr) || []) {
+        if (!visited.has(to)) {
+          visited.add(to);
+          parent.set(to, { prev: curr, link });
+          queue.push(to);
+        }
+      }
+    }
+
+    if (!found) return null;
+
+    const nodeIds = [];
+    const edges = [];
+    let curr = endId;
+    while (curr !== startId) {
+      nodeIds.push(curr);
+      const step = parent.get(curr);
+      edges.push({
+        from: step.prev,
+        to: curr,
+        relation: step.link.relation,
+        isCross: step.link.isCross
+      });
+      curr = step.prev;
+    }
+    nodeIds.push(startId);
+    nodeIds.reverse();
+    edges.reverse();
+
+    const edgeKeys = new Set(edges.map((e) => edgeKey(e.from, e.to)));
+    return {
+      nodeIds,
+      nodeSet: new Set(nodeIds),
+      edgeKeys,
+      edges
+    };
+  }
+
+  setBridgePath(startId, endId) {
+    const path = this.findShortestPath(startId, endId);
+    this.bridgePath = path;
+    if (path && path.nodeIds.length > 0) {
+      this.activeDomain = 'all';
+      this.searchQuery = '';
+      this.highlightedBookNodeIds = null;
+      this.selectedNode = null;
+      this.fitNodesToView(path.nodeIds.map((id) => this.nodeMap.get(id)).filter(Boolean), true);
+    }
+    return path;
+  }
+
+  clearBridgePath() {
+    this.bridgePath = null;
+  }
+
+  // Drop or replace a temporary custom thesis node onto the graph
+  addCustomThesisNode({ title, thesis, domain, linkedNodeIds }) {
+    this.removeCustomThesisNode(false);
+
+    const dom = DOMAIN_MAP[domain] || DOMAINS[0];
+    const targets = linkedNodeIds.map((id) => this.nodeMap.get(id)).filter(Boolean);
+
+    let startX = Math.cos(dom.angle) * 140;
+    let startY = Math.sin(dom.angle) * 140;
+    if (targets.length > 0) {
+      startX = targets.reduce((sum, n) => sum + n.x, 0) / targets.length + 18;
+      startY = targets.reduce((sum, n) => sum + n.y, 0) / targets.length - 18;
+    }
+
+    const customNode = {
+      id: 'custom-thesis',
+      code: 'CUSTOM',
+      title,
+      domain: dom.id,
+      aphorism: thesis,
+      principle: 'Temporary custom thesis node dropped live onto the graph and wired client-side by keyword & domain overlap.',
+      source: 'Your live custom thesis (temporary, client-side only)',
+      bookId: null,
+      application: 'Drag this node to test layout tension, inspect its auto-matched bridges, or pick it in the Shortest-Path Concept Bridge.',
+      tags: ['custom', 'thesis'],
+      weight: 1.35,
+      color: '#1d4ed8',
+      glow: 'rgba(29, 78, 216, 0.16)',
+      anchorX: startX,
+      anchorY: startY,
+      x: startX,
+      y: startY,
+      vx: 0,
+      vy: 0,
+      radius: 11,
+      degree: 0,
+      crossDegree: 0,
+      isCustom: true
+    };
+
+    this.nodes.push(customNode);
+    this.customNodeId = customNode.id;
+
+    for (const target of targets) {
+      this.links.push({
+        source: customNode,
+        target,
+        relation: 'thesis match',
+        isCross: customNode.domain !== target.domain,
+        isCustomLink: true
+      });
+    }
+
+    this.rebuildAdjacency();
+    this.alpha = 0.45;
+    this.activeDomain = 'all';
+    this.searchQuery = '';
+    this.highlightedBookNodeIds = null;
+    this.bridgePath = null;
+    this.focusNode(customNode.id);
+
+    return { node: customNode, targets };
+  }
+
+  removeCustomThesisNode(refit = true) {
+    if (!this.customNodeId) return false;
+    const id = this.customNodeId;
+    this.nodes = this.nodes.filter((n) => n.id !== id);
+    this.links = this.links.filter((l) => l.source.id !== id && l.target.id !== id);
+    this.customNodeId = null;
+    if (this.selectedNode && this.selectedNode.id === id) {
+      this.selectedNode = null;
+      if (this.callbacks.onClearSelect) this.callbacks.onClearSelect();
+    }
+    if (this.hoveredNode && this.hoveredNode.id === id) {
+      this.hoveredNode = null;
+    }
+    if (this.bridgePath && this.bridgePath.nodeSet.has(id)) {
+      this.bridgePath = null;
+    }
+    this.rebuildAdjacency();
+    this.alpha = 0.25;
+    if (refit) this.fitToView(true);
+    return true;
   }
 
   resize() {
@@ -148,7 +330,7 @@ export class ObservatoryGraph {
     const { x, y } = this.screenToWorld(sx, sy);
     let closest = null;
     let bestDist = Infinity;
-    const hitPad = (this.width < 768 ? 18 : 10) / this.cam.scale;
+    const hitPad = (this.width < 768 ? 18 : 11) / this.cam.scale;
     for (let i = this.nodes.length - 1; i >= 0; i--) {
       const n = this.nodes[i];
       const dx = x - n.x;
@@ -163,6 +345,9 @@ export class ObservatoryGraph {
   }
 
   nodeMatchesFilter(node) {
+    if (this.bridgePath) {
+      return this.bridgePath.nodeSet.has(node.id);
+    }
     if (this.highlightedBookNodeIds && this.highlightedBookNodeIds.size > 0) {
       return this.highlightedBookNodeIds.has(node.id);
     }
@@ -179,15 +364,16 @@ export class ObservatoryGraph {
 
   setDomainFilter(domainId) {
     this.highlightedBookNodeIds = null;
+    this.bridgePath = null;
     this.activeDomain = domainId;
     this.alpha = Math.max(this.alpha, 0.12);
     if (domainId !== 'all') {
       const dom = DOMAIN_MAP[domainId];
       if (dom) {
-        const scale = Math.min(1.25, Math.max(0.9, this.width / 820));
+        const scale = Math.min(1.22, Math.max(0.88, this.width / 820));
         this.targetCam = {
-          x: -Math.cos(dom.angle) * 210 * scale,
-          y: -Math.sin(dom.angle) * 210 * scale,
+          x: -Math.cos(dom.angle) * 205 * scale,
+          y: -Math.sin(dom.angle) * 205 * scale,
           scale
         };
       }
@@ -198,6 +384,7 @@ export class ObservatoryGraph {
 
   setSearchQuery(q) {
     this.highlightedBookNodeIds = null;
+    this.bridgePath = null;
     this.searchQuery = (q || '').trim().toLowerCase();
     return this.nodes.filter((n) => this.nodeMatchesFilter(n));
   }
@@ -205,13 +392,11 @@ export class ObservatoryGraph {
   highlightBookNodes(nodeIds) {
     this.activeDomain = 'all';
     this.searchQuery = '';
+    this.bridgePath = null;
     this.highlightedBookNodeIds = new Set(nodeIds);
     const matched = this.nodes.filter((n) => this.highlightedBookNodeIds.has(n.id));
     if (matched.length > 0) {
-      const cx = matched.reduce((acc, n) => acc + n.x, 0) / matched.length;
-      const cy = matched.reduce((acc, n) => acc + n.y, 0) / matched.length;
-      const scale = Math.min(1.25, Math.max(0.9, this.width / 840));
-      this.targetCam = { x: -cx * scale, y: -cy * scale, scale };
+      this.fitNodesToView(matched, true);
       this.selectNode(matched[0]);
     }
   }
@@ -239,7 +424,7 @@ export class ObservatoryGraph {
     const node = this.nodeMap.get(nodeId);
     if (!node) return;
     this.selectedNode = node;
-    const scale = Math.max(1.15, Math.min(1.5, this.cam.scale));
+    const scale = Math.max(1.12, Math.min(1.45, this.cam.scale));
     this.targetCam = {
       x: -node.x * scale,
       y: -node.y * scale,
@@ -260,9 +445,44 @@ export class ObservatoryGraph {
     };
   }
 
+  fitNodesToView(targetNodes, animate = true) {
+    if (!targetNodes || targetNodes.length === 0) {
+      this.fitToView(animate);
+      return;
+    }
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const n of targetNodes) {
+      if (n.x - 75 < minX) minX = n.x - 75;
+      if (n.x + 75 > maxX) maxX = n.x + 75;
+      if (n.y - 60 < minY) minY = n.y - 60;
+      if (n.y + 60 > maxY) maxY = n.y + 60;
+    }
+    const padX = this.width < 640 ? 28 : 70;
+    const padTop = 44;
+    const padBottom = 76;
+    const availW = Math.max(180, this.width - padX * 2);
+    const availH = Math.max(200, this.height - padTop - padBottom);
+    const spanX = Math.max(260, maxX - minX);
+    const spanY = Math.max(220, maxY - minY);
+    const scale = Math.max(0.42, Math.min(1.35, Math.min(availW / spanX, availH / spanY)));
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    const yBias = (padTop - padBottom) / 2;
+    const goal = { x: -cx * scale, y: -cy * scale + yBias, scale };
+    if (animate) {
+      this.targetCam = goal;
+    } else {
+      this.cam = goal;
+      this.targetCam = null;
+    }
+  }
+
   fitToView(animate = true) {
     const isMobile = this.width < 640;
-    const labelR = 320;
+    const labelR = 315;
     const labelHalfW = isMobile ? 105 : 135;
     const labelPadY = 32;
 
@@ -277,7 +497,6 @@ export class ObservatoryGraph {
       if (n.y + 40 > maxY) maxY = n.y + 40;
     }
 
-    // Include domain watermark label extents so no cluster label is ever clipped
     for (const dom of DOMAINS) {
       const lx = Math.cos(dom.angle) * labelR;
       const ly = Math.sin(dom.angle) * labelR;
@@ -287,15 +506,15 @@ export class ObservatoryGraph {
       if (ly + labelPadY > maxY) maxY = ly + labelPadY;
     }
 
-    const padX = isMobile ? 24 : 52;
-    const padTop = isMobile ? 24 : 40;
-    const padBottom = isMobile ? 24 : 74;
+    const padX = isMobile ? 20 : 48;
+    const padTop = isMobile ? 22 : 34;
+    const padBottom = isMobile ? 54 : 68;
     const availW = Math.max(180, this.width - padX * 2);
     const availH = Math.max(200, this.height - padTop - padBottom);
 
     const spanX = Math.max(480, maxX - minX);
     const spanY = Math.max(440, maxY - minY);
-    const minScale = isMobile ? 0.26 : 0.45;
+    const minScale = isMobile ? 0.28 : 0.48;
     const scale = Math.max(minScale, Math.min(1.08, Math.min(availW / spanX, availH / spanY)));
     const cx = (minX + maxX) / 2;
     const cy = (minY + maxY) / 2;
@@ -319,13 +538,13 @@ export class ObservatoryGraph {
       const a = nodes[i];
       for (let j = i + 1; j < nLen; j++) {
         const b = nodes[j];
-        let dx = b.x - a.x;
-        let dy = b.y - a.y;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
         let distSq = dx * dx + dy * dy;
         if (distSq < 16) distSq = 16;
         const dist = Math.sqrt(distSq);
         const minDist = a.radius + b.radius + 32;
-        const force = (repulsion / distSq) + (dist < minDist ? (minDist - dist) * 0.25 : 0);
+        const force = repulsion / distSq + (dist < minDist ? (minDist - dist) * 0.25 : 0);
         const fx = (dx / dist) * force * energy;
         const fy = (dy / dist) * force * energy;
         a.vx -= fx;
@@ -340,8 +559,8 @@ export class ObservatoryGraph {
       const dx = l.target.x - l.source.x;
       const dy = l.target.y - l.source.y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      const ideal = l.isCross ? 195 : 88;
-      const stiffness = l.isCross ? 0.0045 : 0.022;
+      const ideal = l.isCustomLink ? 120 : l.isCross ? 195 : 88;
+      const stiffness = l.isCustomLink ? 0.018 : l.isCross ? 0.0045 : 0.022;
       const diff = (dist - ideal) * stiffness * energy;
       const fx = (dx / dist) * diff;
       const fy = (dy / dist) * diff;
@@ -351,11 +570,12 @@ export class ObservatoryGraph {
       l.target.vy -= fy;
     }
 
-    // 3. Domain cluster gravity wells + soft centering
+    // 3. Domain cluster gravity wells
     for (let i = 0; i < nLen; i++) {
       const n = nodes[i];
-      n.vx += (n.anchorX - n.x) * 0.015 * energy;
-      n.vy += (n.anchorY - n.y) * 0.015 * energy;
+      const pull = n.isCustom ? 0.004 : 0.015;
+      n.vx += (n.anchorX - n.x) * pull * energy;
+      n.vy += (n.anchorY - n.y) * pull * energy;
 
       if (n !== this.draggedNode) {
         n.vx *= 0.82;
@@ -374,85 +594,59 @@ export class ObservatoryGraph {
     ctx.save();
     ctx.scale(this.dpr, this.dpr);
 
-    // Deep obsidian background
-    ctx.fillStyle = '#090b10';
-    ctx.fillRect(0, 0, this.width, this.height);
-
-    // Subtle radial observatory vignette
-    const bgGrad = ctx.createRadialGradient(
-      this.width * 0.5,
-      this.height * 0.48,
-      30,
-      this.width * 0.5,
-      this.height * 0.5,
-      Math.max(this.width, this.height) * 0.72
-    );
-    bgGrad.addColorStop(0, 'rgba(26, 33, 56, 0.28)');
-    bgGrad.addColorStop(0.55, 'rgba(13, 17, 28, 0.12)');
-    bgGrad.addColorStop(1, 'rgba(9, 11, 16, 0)');
-    ctx.fillStyle = bgGrad;
+    // Clean warm paper editorial surface
+    ctx.fillStyle = '#fafaf9';
     ctx.fillRect(0, 0, this.width, this.height);
 
     // Transform into world coordinates
     ctx.translate(this.width / 2 + this.cam.x, this.height / 2 + this.cam.y);
     ctx.scale(this.cam.scale, this.cam.scale);
 
-    // Subtle celestial coordinate rings
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.028)';
+    // Subtle architectural coordinate rings & crosshairs
+    ctx.strokeStyle = '#e7e5e4';
     ctx.lineWidth = 1 / this.cam.scale;
-    for (const r of [140, 260, 390]) {
+    for (const r of [140, 255, 380]) {
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // Subtle background starfield
-    for (const s of this.stars) {
-      ctx.fillStyle = `rgba(210, 224, 255, ${s.a})`;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r / Math.sqrt(this.cam.scale), 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Soft cluster nebula halos & domain watermark labels
+    // Soft editorial cluster washes & domain labels
     const isMobile = this.width < 640;
-    const labelR = 320;
+    const labelR = 315;
     for (const dom of DOMAINS) {
-      const ax = Math.cos(dom.angle) * 240;
-      const ay = Math.sin(dom.angle) * 240;
-      const dimmed = this.activeDomain !== 'all' && this.activeDomain !== dom.id;
-      const halo = ctx.createRadialGradient(ax, ay, 8, ax, ay, 165);
-      halo.addColorStop(0, dimmed ? 'rgba(255,255,255,0.008)' : dom.glow.replace('0.3', '0.11'));
-      halo.addColorStop(1, 'rgba(9, 11, 16, 0)');
+      const ax = Math.cos(dom.angle) * 235;
+      const ay = Math.sin(dom.angle) * 235;
+      const dimmed =
+        (this.activeDomain !== 'all' && this.activeDomain !== dom.id) || Boolean(this.bridgePath);
+      const halo = ctx.createRadialGradient(ax, ay, 12, ax, ay, 150);
+      halo.addColorStop(0, dimmed ? 'rgba(0,0,0,0.012)' : dom.glow.replace('0.14', '0.075'));
+      halo.addColorStop(1, 'rgba(250, 250, 249, 0)');
       ctx.fillStyle = halo;
       ctx.beginPath();
-      ctx.arc(ax, ay, 165, 0, Math.PI * 2);
+      ctx.arc(ax, ay, 150, 0, Math.PI * 2);
       ctx.fill();
 
-      // Cluster title — clamp in screen space so labels never clip at canvas edges
+      // Cluster title clamped inside viewport
       const fontSize = isMobile
         ? Math.max(10, 10.5 / Math.sqrt(this.cam.scale))
         : Math.max(10.5, 11 / Math.sqrt(this.cam.scale));
       ctx.font = `600 ${fontSize}px Inter, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = dimmed ? 'rgba(148, 163, 184, 0.16)' : dom.color;
-      ctx.globalAlpha = dimmed ? 0.3 : 0.72;
+      ctx.fillStyle = dimmed ? '#a8a29e' : dom.color;
+      ctx.globalAlpha = dimmed ? 0.45 : 0.88;
       const labelText = isMobile ? dom.short.toUpperCase() : dom.name.toUpperCase();
       let lx = Math.cos(dom.angle) * labelR;
       let ly = Math.sin(dom.angle) * labelR;
-      const halfTextW = (ctx.measureText(labelText).width / 2);
+      const halfTextW = ctx.measureText(labelText).width / 2;
       const padWorld = 16 / this.cam.scale;
       const leftBound = (-this.width / 2 - this.cam.x) / this.cam.scale + halfTextW + padWorld;
       const rightBound = (this.width / 2 - this.cam.x) / this.cam.scale - halfTextW - padWorld;
       const topBound = (-this.height / 2 - this.cam.y) / this.cam.scale + fontSize + padWorld;
       const bottomBound = (this.height / 2 - this.cam.y) / this.cam.scale - fontSize - padWorld;
-      if (leftBound < rightBound) {
-        lx = Math.max(leftBound, Math.min(rightBound, lx));
-      }
-      if (topBound < bottomBound) {
-        ly = Math.max(topBound, Math.min(bottomBound, ly));
-      }
+      if (leftBound < rightBound) lx = Math.max(leftBound, Math.min(rightBound, lx));
+      if (topBound < bottomBound) ly = Math.max(topBound, Math.min(bottomBound, ly));
       ctx.fillText(labelText, lx, ly);
       ctx.globalAlpha = 1;
     }
@@ -460,71 +654,128 @@ export class ObservatoryGraph {
     const focus = this.hoveredNode || this.selectedNode;
     const focusNeighbors = focus ? this.neighbors.get(focus.id) : null;
     const hasFilter =
+      Boolean(this.bridgePath) ||
       this.activeDomain !== 'all' ||
       Boolean(this.searchQuery) ||
       Boolean(this.highlightedBookNodeIds && this.highlightedBookNodeIds.size > 0);
 
     // Draw edges
     for (const l of this.links) {
-      if (this.crossDomainOnly && !l.isCross) continue;
+      const key = edgeKey(l.source.id, l.target.id);
+      const isBridgeEdge = this.bridgePath && this.bridgePath.edgeKeys.has(key);
+
+      if (this.crossDomainOnly && !l.isCross && !isBridgeEdge && !l.isCustomLink) continue;
 
       const sMatch = this.nodeMatchesFilter(l.source);
       const tMatch = this.nodeMatchesFilter(l.target);
       const touchesFocus = focus && (l.source.id === focus.id || l.target.id === focus.id);
 
-      let alpha = l.isCross ? 0.14 : 0.2;
-      let width = l.isCross ? 1.0 : 0.9;
+      let alpha = l.isCustomLink ? 0.65 : l.isCross ? 0.22 : 0.28;
+      let width = l.isCustomLink ? 1.5 : l.isCross ? 1.05 : 0.95;
 
       if (hasFilter) {
-        if (sMatch && tMatch) {
-          alpha = l.isCross ? 0.34 : 0.32;
+        if (isBridgeEdge) {
+          alpha = 1;
+          width = 2.8;
+        } else if (this.bridgePath) {
+          alpha = 0.06;
+        } else if (sMatch && tMatch) {
+          alpha = 0.45;
         } else if (sMatch || tMatch) {
-          alpha = 0.08;
+          alpha = 0.1;
         } else {
-          alpha = 0.025;
+          alpha = 0.04;
         }
       }
 
-      if (focus) {
+      if (focus && !isBridgeEdge) {
         if (touchesFocus) {
-          alpha = l.isCross ? 0.88 : 0.62;
-          width = l.isCross ? 2.0 : 1.45;
-        } else {
-          alpha = Math.min(alpha, 0.04);
+          alpha = l.isCross ? 0.85 : 0.65;
+          width = l.isCross ? 2.0 : 1.5;
+        } else if (!this.bridgePath) {
+          alpha = Math.min(alpha, 0.06);
         }
       }
 
       ctx.beginPath();
+      let ctrlX = null;
+      let ctrlY = null;
       if (l.isCross) {
-        // Gentle curved arc for cross-domain bridges so they read distinctly
         const mx = (l.source.x + l.target.x) / 2;
         const my = (l.source.y + l.target.y) / 2;
         const dx = l.target.x - l.source.x;
         const dy = l.target.y - l.source.y;
-        const cx = mx - dy * 0.12;
-        const cy = my + dx * 0.12;
+        ctrlX = mx - dy * 0.12;
+        ctrlY = my + dx * 0.12;
         ctx.moveTo(l.source.x, l.source.y);
-        ctx.quadraticCurveTo(cx, cy, l.target.x, l.target.y);
+        ctx.quadraticCurveTo(ctrlX, ctrlY, l.target.x, l.target.y);
       } else {
         ctx.moveTo(l.source.x, l.source.y);
         ctx.lineTo(l.target.x, l.target.y);
       }
 
-      if (touchesFocus && l.isCross) {
+      if (isBridgeEdge) {
+        ctx.strokeStyle = '#1d4ed8';
+      } else if (l.isCustomLink) {
+        ctx.setLineDash([5 / Math.sqrt(this.cam.scale), 4 / Math.sqrt(this.cam.scale)]);
+        ctx.strokeStyle = `rgba(29, 78, 216, ${alpha})`;
+      } else if (touchesFocus && l.isCross) {
         const grad = ctx.createLinearGradient(l.source.x, l.source.y, l.target.x, l.target.y);
         grad.addColorStop(0, l.source.color);
         grad.addColorStop(1, l.target.color);
         ctx.strokeStyle = grad;
       } else {
         ctx.strokeStyle = l.isCross
-          ? `rgba(203, 213, 225, ${alpha})`
-          : `rgba(148, 163, 184, ${alpha})`;
+          ? `rgba(82, 82, 91, ${alpha})`
+          : `rgba(120, 113, 108, ${alpha})`;
       }
 
-      ctx.globalAlpha = touchesFocus && l.isCross ? 0.9 : 1;
       ctx.lineWidth = width / Math.sqrt(this.cam.scale);
       ctx.stroke();
-      ctx.globalAlpha = 1;
+      ctx.setLineDash([]);
+    }
+
+    // Animated pulse traveling along the Shortest-Path Concept Bridge
+    if (this.bridgePath && this.bridgePath.edges.length > 0) {
+      const totalHops = this.bridgePath.edges.length;
+      const cycle = (this.time * 0.55) % totalHops;
+      const hopIdx = Math.floor(cycle);
+      const t = cycle - hopIdx;
+      const edge = this.bridgePath.edges[hopIdx];
+      const s = this.nodeMap.get(edge.from);
+      const e = this.nodeMap.get(edge.to);
+      if (s && e) {
+        let px;
+        let py;
+        if (edge.isCross) {
+          // Match quadratic curve direction (stored on link source->target; approximate smoothly)
+          const linkObj = this.links.find(
+            (l) =>
+              (l.source.id === s.id && l.target.id === e.id) ||
+              (l.source.id === e.id && l.target.id === s.id)
+          );
+          const a = linkObj ? linkObj.source : s;
+          const b = linkObj ? linkObj.target : e;
+          const mx = (a.x + b.x) / 2;
+          const my = (a.y + b.y) / 2;
+          const cx = mx - (b.y - a.y) * 0.12;
+          const cy = my + (b.x - a.x) * 0.12;
+          const u = linkObj && linkObj.source.id === s.id ? t : 1 - t;
+          const inv = 1 - u;
+          px = inv * inv * a.x + 2 * inv * u * cx + u * u * b.x;
+          py = inv * inv * a.y + 2 * inv * u * cy + u * u * b.y;
+        } else {
+          px = s.x + (e.x - s.x) * t;
+          py = s.y + (e.y - s.y) * t;
+        }
+        ctx.beginPath();
+        ctx.arc(px, py, 4.5 / Math.sqrt(this.cam.scale), 0, Math.PI * 2);
+        ctx.fillStyle = '#1d4ed8';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.6 / Math.sqrt(this.cam.scale);
+        ctx.stroke();
+      }
     }
 
     // Draw nodes
@@ -533,76 +784,120 @@ export class ObservatoryGraph {
       const isFocused = focus && n.id === focus.id;
       const isNeighbor = focusNeighbors && focusNeighbors.has(n.id);
       const isSelected = this.selectedNode && n.id === this.selectedNode.id;
+      const bridgeIdx = this.bridgePath ? this.bridgePath.nodeIds.indexOf(n.id) : -1;
+      const isOnBridge = bridgeIdx !== -1;
 
-      let nodeAlpha = 0.92;
-      if (hasFilter && !matches) nodeAlpha = 0.15;
-      if (focus && !isNeighbor) nodeAlpha = 0.14;
-      if (isFocused || isSelected) nodeAlpha = 1;
+      let nodeAlpha = 0.94;
+      if (hasFilter && !matches) nodeAlpha = 0.18;
+      if (focus && !isNeighbor && !isOnBridge) nodeAlpha = 0.16;
+      if (isFocused || isSelected || isOnBridge || n.isCustom) nodeAlpha = 1;
 
-      const r = n.radius * (isFocused ? 1.24 : 1);
+      const r = n.radius * (isFocused || isOnBridge ? 1.2 : 1);
 
-      // Luminous outer aura on active/important nodes
-      if (isFocused || isSelected || (nodeAlpha > 0.7 && n.weight >= 1.25)) {
-        const glowR = r * (isFocused ? 3.4 : 2.3);
-        const grad = ctx.createRadialGradient(n.x, n.y, r * 0.3, n.x, n.y, glowR);
-        grad.addColorStop(0, n.glow);
-        grad.addColorStop(1, 'rgba(9, 11, 16, 0)');
-        ctx.fillStyle = grad;
-        ctx.globalAlpha = nodeAlpha;
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, glowR, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Node core
       ctx.globalAlpha = nodeAlpha;
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = isFocused || isSelected ? '#f8fafc' : n.color;
-      ctx.fill();
 
-      // Ring around selected or high-weight nodes
-      if (isSelected || isFocused) {
+      if (n.isCustom) {
+        // Distinct diamond shape for temporary custom thesis node
+        ctx.save();
+        ctx.translate(n.x, n.y);
         ctx.beginPath();
-        ctx.arc(n.x, n.y, r + 3.5, 0, Math.PI * 2);
-        ctx.strokeStyle = n.color;
-        ctx.lineWidth = 1.6 / Math.sqrt(this.cam.scale);
+        ctx.moveTo(0, -r * 1.25);
+        ctx.lineTo(r * 1.25, 0);
+        ctx.lineTo(0, r * 1.25);
+        ctx.lineTo(-r * 1.25, 0);
+        ctx.closePath();
+        ctx.fillStyle = '#1d4ed8';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2 / Math.sqrt(this.cam.scale);
         ctx.stroke();
+
+        // Outer dashed ring
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 1.75, 0, Math.PI * 2);
+        ctx.setLineDash([4 / Math.sqrt(this.cam.scale), 3 / Math.sqrt(this.cam.scale)]);
+        ctx.strokeStyle = '#1d4ed8';
+        ctx.lineWidth = 1.3 / Math.sqrt(this.cam.scale);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
       } else {
+        // Soft subtle editorial ring for selected, focused, or bridge nodes
+        if (isSelected || isFocused || isOnBridge) {
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, r + 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = isOnBridge ? 'rgba(29, 78, 216, 0.14)' : n.glow;
+          ctx.fill();
+        }
+
+        // Node circle
         ctx.beginPath();
         ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(9, 11, 16, 0.75)';
-        ctx.lineWidth = 1 / Math.sqrt(this.cam.scale);
+        ctx.fillStyle = isOnBridge ? '#1d4ed8' : n.color;
+        ctx.fill();
+
+        // Crisp white rim
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+        ctx.strokeStyle = isSelected || isFocused ? '#111111' : '#ffffff';
+        ctx.lineWidth = (isSelected || isFocused ? 2 : 1.5) / Math.sqrt(this.cam.scale);
         ctx.stroke();
       }
 
-      // Labels — fewer labels on mobile with tap-to-reveal
+      // Bridge step number badge (1, 2, 3...)
+      if (isOnBridge) {
+        const badgeR = 8.5 / Math.sqrt(this.cam.scale);
+        const bx = n.x + r * 0.95;
+        const by = n.y - r * 0.95;
+        ctx.beginPath();
+        ctx.arc(bx, by, badgeR, 0, Math.PI * 2);
+        ctx.fillStyle = '#111111';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2 / Math.sqrt(this.cam.scale);
+        ctx.stroke();
+
+        ctx.font = `600 ${Math.max(8.5, 9.5 / Math.sqrt(this.cam.scale))}px "JetBrains Mono", monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(String(bridgeIdx + 1), bx, by + 0.5);
+      }
+
+      // Labels — clean dark ink with paper halo for effortless legibility
       const showLabel = isMobile
         ? this.showAllLabels ||
           isFocused ||
           isSelected ||
+          isOnBridge ||
+          n.isCustom ||
           (focus && isNeighbor) ||
           (hasFilter && matches)
         : this.showAllLabels ||
           isFocused ||
           isSelected ||
+          isOnBridge ||
+          n.isCustom ||
           (focus && isNeighbor) ||
           (hasFilter && matches) ||
-          (this.cam.scale >= 1.1 && n.weight >= 1.15) ||
+          (this.cam.scale >= 1.08 && n.weight >= 1.15) ||
           n.weight >= 1.3;
 
-      if (showLabel && nodeAlpha > 0.25) {
-        const fontSize = Math.max(9.5, (isFocused || isSelected ? 12 : 10.5) / Math.sqrt(this.cam.scale));
-        ctx.font = `${isFocused || isSelected ? 600 : 500} ${fontSize}px Inter, system-ui, sans-serif`;
+      if (showLabel && nodeAlpha > 0.28) {
+        const fontSize = Math.max(
+          9.5,
+          (isFocused || isSelected || isOnBridge || n.isCustom ? 11.8 : 10.2) / Math.sqrt(this.cam.scale)
+        );
+        ctx.font = `${isFocused || isSelected || isOnBridge || n.isCustom ? 600 : 500} ${fontSize}px Inter, system-ui, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        const labelY = n.y + r + 5.5;
+        const labelY = n.y + r + 5;
 
-        // Subtle dark text shadow for crisp legibility
-        ctx.fillStyle = 'rgba(9, 11, 16, 0.88)';
-        ctx.fillText(n.title, n.x + 0.8, labelY + 0.8);
+        ctx.lineWidth = 3.2 / Math.sqrt(this.cam.scale);
+        ctx.strokeStyle = 'rgba(250, 250, 249, 0.94)';
+        ctx.strokeText(n.title, n.x, labelY);
 
-        ctx.fillStyle = isFocused || isSelected ? '#ffffff' : 'rgba(226, 232, 240, 0.9)';
+        ctx.fillStyle = isOnBridge || n.isCustom ? '#1d4ed8' : isFocused || isSelected ? '#111111' : '#292524';
         ctx.fillText(n.title, n.x, labelY);
       }
 
@@ -622,7 +917,6 @@ export class ObservatoryGraph {
         this.stepPhysics(0.08);
       }
 
-      // Smooth camera interpolation
       if (this.targetCam) {
         this.cam.x += (this.targetCam.x - this.cam.x) * 0.14;
         this.cam.y += (this.targetCam.y - this.cam.y) * 0.14;
@@ -745,7 +1039,7 @@ export class ObservatoryGraph {
     window.addEventListener('resize', () => {
       const prevW = this.width;
       this.resize();
-      if (Math.abs(this.width - prevW) > 24 && !this.selectedNode) {
+      if (Math.abs(this.width - prevW) > 24 && !this.selectedNode && !this.bridgePath) {
         this.fitToView(false);
       }
     });
