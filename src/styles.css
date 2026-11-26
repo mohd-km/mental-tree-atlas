@@ -34,6 +34,8 @@ html {
   color: var(--text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {
@@ -44,6 +46,20 @@ body {
     var(--bg-obsidian);
   color: var(--text-primary);
   line-height: 1.6;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+img,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 h1,
@@ -171,14 +187,14 @@ button {
 }
 
 .hero h1 {
-  font-size: clamp(2.2rem, 4.2vw, 3.35rem);
+  font-size: clamp(1.85rem, 4.2vw, 3.35rem);
   line-height: 1.12;
   margin-bottom: 1.25rem;
   max-width: 18ch;
 }
 
 .hero-lead {
-  font-size: 1.04rem;
+  font-size: clamp(0.95rem, 1.15vw, 1.04rem);
   color: var(--text-secondary);
   max-width: 60ch;
   line-height: 1.7;
@@ -815,7 +831,7 @@ button {
 
 .essays-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(310px, 100%), 1fr));
   gap: 1rem;
 }
 
@@ -1188,8 +1204,10 @@ button {
 }
 
 .radar-svg {
-  width: 215px;
-  height: 215px;
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  display: block;
 }
 
 .st-lenses-grid {
@@ -1419,7 +1437,7 @@ button {
 
 .bs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr));
   gap: 1rem;
 }
 
@@ -1524,13 +1542,22 @@ button {
 
 .footer-links {
   display: flex;
-  gap: 1.4rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.4rem;
   font-size: 0.84rem;
   color: var(--text-secondary);
 }
 
 .footer-links a:hover {
   color: #f8fafc;
+}
+
+.graph-tooltip {
+  max-width: min(270px, calc(100% - 24px));
+}
+
+body.drawer-open-mobile {
+  overflow: hidden;
 }
 
 /* Responsive */
@@ -1549,25 +1576,410 @@ button {
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+    max-width: 100%;
+    padding-inline: 16px;
+  }
+
+  /* Header & Mobile Nav */
+  .header-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+    padding: 0.75rem 0 0.55rem;
+    min-height: 0;
+  }
+
+  .brand {
+    gap: 0.65rem;
+    min-width: 0;
+  }
+
+  .brand-title {
+    font-size: 0.98rem;
+  }
+
+  .brand-sub {
+    font-size: 0.64rem;
+  }
+
   .site-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.15rem;
+    margin-inline: -2px;
+  }
+
+  .site-nav::-webkit-scrollbar {
     display: none;
   }
 
+  .site-nav a {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.85rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-hairline);
+    background: var(--bg-elevated);
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 2.25rem 0 2rem;
+  }
+
+  .hero-grid {
+    gap: 1.5rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.75rem, 7vw, 2.25rem);
+    max-width: none;
+    margin-bottom: 0.9rem;
+  }
+
+  .hero-lead {
+    font-size: 0.95rem;
+    line-height: 1.62;
+    margin-bottom: 1.35rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .btn-primary,
+  .btn-ghost {
+    min-height: 44px;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .hero-telemetry {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  .metric-card {
+    padding: 0.95rem 1rem;
+    min-width: 0;
+  }
+
+  .metric-value {
+    font-size: 1.4rem;
+  }
+
+  .metric-card-wide {
+    flex-wrap: wrap;
+    min-height: 44px;
+  }
+
+  /* Shared Sections */
+  .section {
+    padding: 2.75rem 0;
+  }
+
+  .section-head {
+    gap: 0.75rem;
+    margin-bottom: 1.35rem;
+  }
+
+  .section-head h2 {
+    font-size: clamp(1.45rem, 6vw, 1.85rem);
+  }
+
+  .section-desc {
+    font-size: 0.9rem;
+  }
+
+  /* Knowledge Graph Toolbar & Stage */
+  .graph-toolbar,
+  .essays-toolbar,
+  .bs-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .domain-filters,
+  .essays-filter-pills,
+  .bs-filter-pills {
+    gap: 0.45rem;
+  }
+
+  .filter-pill,
+  .bs-pill {
+    min-height: 44px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.82rem;
+  }
+
+  .graph-search-wrap,
+  .essays-search-wrap {
+    min-width: 0;
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .graph-search {
+    min-height: 44px;
+    font-size: 16px;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .active-book-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.9rem 1rem;
+  }
+
+  .btn-mini {
+    min-height: 44px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.82rem;
+  }
+
   .observatory-stage {
-    height: 540px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #graph-canvas {
+    width: 100%;
+    height: clamp(340px, 56vh, 460px);
+    flex: 0 0 auto;
+  }
+
+  .graph-hud-bottom {
+    position: static;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+    padding: 0.75rem;
+    background: var(--bg-elevated);
+    border-top: 1px solid var(--border-hairline);
+    pointer-events: auto;
+  }
+
+  .hud-toggles,
+  .hud-zoom {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 0.45rem;
+  }
+
+  .hud-toggles .hud-btn {
+    flex: 1 1 calc(50% - 0.25rem);
+  }
+
+  .hud-zoom .hud-btn {
+    flex: 1 1 auto;
+  }
+
+  .hud-btn,
+  .hud-icon-btn {
+    min-height: 44px;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hud-icon-btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+
+  /* Full-Screen Mobile Concept Drawer */
+  .concept-drawer {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    border-left: none;
+    z-index: 60;
+    transform: translateY(102%);
+  }
+
+  .concept-drawer.is-open {
+    transform: translateY(0);
+  }
+
+  .drawer-header {
+    padding: 0.9rem 1rem;
+  }
+
+  .drawer-close {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .drawer-body {
+    padding: 1rem;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .drawer-link-btn {
+    min-height: 44px;
+    padding: 0.65rem 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  /* Published Essays */
+  .essays-grid {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+
+  .essay-card {
+    padding: 1rem;
+  }
+
+  .essay-node-chip {
+    min-height: 36px;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.76rem;
+  }
+
+  .essay-read-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 0.82rem;
+  }
+
+  /* 4-Lens Stress-Tester */
+  .st-controls {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .st-chip-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .st-chip {
+    width: 100%;
+    min-height: 44px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    text-align: left;
+    padding: 0.65rem 0.85rem;
   }
 
   .st-input-row {
     flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .st-textarea {
+    width: 100%;
+    font-size: 16px;
+    min-height: 88px;
+  }
+
+  .st-run-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .st-summary-strip {
+    padding: 1rem;
+    gap: 1.25rem;
+  }
+
+  .st-score-val {
+    font-size: 2.15rem;
   }
 
   .st-bars {
     grid-template-columns: 1fr;
+    gap: 0.6rem;
   }
 
-  .graph-hud-bottom {
+  .st-bar-row {
+    grid-template-columns: minmax(86px, auto) 1fr 42px;
+  }
+
+  .st-summary-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .st-lens-card {
+    padding: 1rem;
+  }
+
+  .st-check-item {
+    min-height: 44px;
+    align-items: center;
+    padding: 0.55rem 0.6rem;
+  }
+
+  /* Canonical Bookshelf */
+  .bs-grid {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+
+  .bs-body {
+    padding: 1rem;
+  }
+
+  /* Footer */
+  .site-footer {
+    padding: 2rem 0 2.5rem;
+  }
+
+  .footer-inner {
     flex-direction: column;
     align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .footer-links {
+    gap: 0.35rem 1rem;
+  }
+
+  .footer-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 390px) {
+  .container {
+    padding-inline: 14px;
+  }
+
+  .hud-toggles .hud-btn {
+    flex: 1 1 100%;
   }
 }

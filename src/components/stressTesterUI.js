@@ -29,8 +29,8 @@ export function initStressTester(rootEl) {
   }
 
   function renderRadarSvg(lensScores) {
-    const cx = 110;
-    const cy = 110;
+    const cx = 140;
+    const cy = 120;
     const maxR = 76;
     const axes = [
       { id: 'deutsch', label: 'Deutsch', angle: -Math.PI / 2, color: '#38bdf8' },
@@ -74,15 +74,15 @@ export function initStressTester(rootEl) {
 
     const labels = axes
       .map((a) => {
-        const lx = cx + Math.cos(a.angle) * (maxR + 18);
+        const lx = cx + Math.cos(a.angle) * (maxR + 14);
         const ly = cy + Math.sin(a.angle) * (maxR + 15);
         const anchor = a.angle === 0 ? 'start' : a.angle === Math.PI ? 'end' : 'middle';
-        return `<text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" text-anchor="${anchor}" fill="${a.color}" font-size="10.5" font-family="Inter, sans-serif" font-weight="600">${a.label}</text>`;
+        return `<text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" text-anchor="${anchor}" fill="${a.color}" font-size="11" font-family="Inter, sans-serif" font-weight="600">${a.label}</text>`;
       })
       .join('');
 
     return `
-      <svg viewBox="0 0 220 220" class="radar-svg" aria-label="Four-lens diagnostic score radar">
+      <svg viewBox="0 0 280 240" class="radar-svg" role="img" aria-label="Four-lens diagnostic score radar">
         ${rings}
         ${spokes}
         <polygon points="${dataPts}" fill="rgba(129, 140, 248, 0.22)" stroke="#818cf8" stroke-width="1.8" />

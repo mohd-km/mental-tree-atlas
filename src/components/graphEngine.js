@@ -121,14 +121,13 @@ export class ObservatoryGraph {
   }
 
   resize() {
-    const rect = this.canvas.parentElement.getBoundingClientRect();
-    this.width = Math.max(320, rect.width);
-    this.height = Math.max(420, rect.height);
+    const rect = this.canvas.getBoundingClientRect();
+    const fallbackRect = this.canvas.parentElement.getBoundingClientRect();
+    this.width = Math.max(240, Math.floor(rect.width || fallbackRect.width));
+    this.height = Math.max(300, Math.floor(rect.height || fallbackRect.height));
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
     this.canvas.width = Math.round(this.width * this.dpr);
     this.canvas.height = Math.round(this.height * this.dpr);
-    this.canvas.style.width = `${this.width}px`;
-    this.canvas.style.height = `${this.height}px`;
   }
 
   screenToWorld(sx, sy) {
@@ -149,7 +148,7 @@ export class ObservatoryGraph {
     const { x, y } = this.screenToWorld(sx, sy);
     let closest = null;
     let bestDist = Infinity;
-    const hitPad = 10 / this.cam.scale;
+    const hitPad = (this.width < 768 ? 18 : 10) / this.cam.scale;
     for (let i = this.nodes.length - 1; i >= 0; i--) {
       const n = this.nodes[i];
       const dx = x - n.x;
@@ -274,7 +273,8 @@ export class ObservatoryGraph {
     }
     const spanX = Math.max(400, maxX - minX + 180);
     const spanY = Math.max(360, maxY - minY + 180);
-    const scale = Math.max(0.55, Math.min(1.15, Math.min(this.width / spanX, this.height / spanY)));
+    const minScale = this.width < 640 ? 0.36 : 0.55;
+    const scale = Math.max(minScale, Math.min(1.15, Math.min(this.width / spanX, this.height / spanY)));
     const cx = (minX + maxX) / 2;
     const cy = (minY + maxY) / 2;
     const goal = { x: -cx * scale, y: -cy * scale, scale };

@@ -56,7 +56,7 @@ const graph = new ObservatoryGraph(canvas, NODES, LINKS, {
     tooltip.hidden = false;
 
     const stageRect = canvas.parentElement.getBoundingClientRect();
-    const ttW = 260;
+    const ttW = Math.min(260, stageRect.width - 24);
     const left = pos.x + 18 + ttW > stageRect.width ? Math.max(12, pos.x - ttW - 14) : pos.x + 18;
     const top = Math.max(12, Math.min(stageRect.height - 96, pos.y - 16));
     tooltip.style.left = `${left}px`;
@@ -269,11 +269,15 @@ function openDrawer(node) {
 
   drawer.classList.add('is-open');
   drawer.setAttribute('aria-hidden', 'false');
+  if (window.innerWidth <= 768) {
+    document.body.classList.add('drawer-open-mobile');
+  }
 }
 
 function closeDrawer() {
   drawer.classList.remove('is-open');
   drawer.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('drawer-open-mobile');
 }
 
 drawerClose.addEventListener('click', () => {
