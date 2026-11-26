@@ -21,7 +21,15 @@ export function initStressTester(rootEl) {
     for (const meta of LENS_META) {
       const checks = currentAnalysis[meta.id].checks;
       const passed = checks.filter((c) => c.pass).length;
-      const score = Math.round((passed / checks.length) * 25);
+      const hasWeights = checks.every((c) => typeof c.weight === 'number');
+      let score;
+      if (hasWeights) {
+        const maxWeight = checks.reduce((sum, c) => sum + c.weight, 0) || 25;
+        const earned = checks.reduce((sum, c) => sum + (c.pass ? c.weight : 0), 0);
+        score = Math.round((earned / maxWeight) * 25);
+      } else {
+        score = Math.round((passed / checks.length) * 25);
+      }
       lensScores[meta.id] = { score, passed, total: checks.length };
       total += score;
     }
@@ -144,7 +152,7 @@ export function initStressTester(rootEl) {
         <form class="st-input-form" id="st-form">
           <label for="st-textarea" class="st-input-label">
             Startup Thesis, Product Claim, or Strategic Bet
-            <span class="st-deterministic-badge">100% Client-Side Deterministic Rubric</span>
+            <span class="st-deterministic-badge">Keyword heuristic checklist (client-side, not an LLM judgement)</span>
           </label>
           <div class="st-input-row">
             <textarea
@@ -155,6 +163,9 @@ export function initStressTester(rootEl) {
             >${escapeHtml(currentThesis)}</textarea>
             <button type="submit" class="btn-primary st-run-btn">Run 4-Lens Audit</button>
           </div>
+          <p class="st-honest-note">
+            Sample theses carry hand-crafted editorial assessments. Custom theses use a lightweight keyword heuristic checklist (client-side, not an LLM judgement) to pre-fill the rubric—toggle any checkbox below to reflect your real assumptions.
+          </p>
         </form>
       </div>
 
@@ -194,9 +205,11 @@ export function initStressTester(rootEl) {
       </div>
 
       <div class="st-lenses-grid">
-        ${LENS_META.map((meta) => {
+        ${LENS_META.map((meta, lensIdx) => {
           const data = currentAnalysis[meta.id];
           const sc = lensScores[meta.id];
+          const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+          const detailsOpen = !isMobile ? 'open' : '';
           return `
             <article class="st-lens-card" style="--lens-color: ${meta.color}">
               <header class="st-lens-head">
@@ -210,45 +223,53 @@ export function initStressTester(rootEl) {
                 </div>
               </header>
 
-              <p class="st-lens-question">${meta.question}</p>
               <p class="st-lens-summary">${escapeHtml(data.summary)}</p>
 
-              ${
-                data.leverageLevel
-                  ? `<div class="st-leverage-pill"><span>Detected Leverage Point</span><strong>${escapeHtml(data.leverageLevel)}</strong></div>`
-                  : ''
-              }
+              <details class="st-lens-details" ${detailsOpen}>
+                <summary class="st-lens-details-toggle">
+                  Diagnostic breakdown &amp; rubric (${sc.passed}/${sc.total} passed)
+                </summary>
+                <div class="st-lens-details-body">
+                  <p class="st-lens-question">${meta.question}</p>
 
-              <div class="st-diagnostic-blocks">
-                <div class="st-diag-box is-risk">
-                  <span class="st-diag-label">Primary Failure Mode</span>
-                  <p>${escapeHtml(data.failureMode)}</p>
-                </div>
-                <div class="st-diag-box is-action">
-                  <span class="st-diag-label">First-Principles Directive</span>
-                  <p>${escapeHtml(data.directive)}</p>
-                </div>
-              </div>
+                  ${
+                    data.leverageLevel
+                      ? `<div class="st-leverage-pill"><span>Detected Leverage Point</span><strong>${escapeHtml(data.leverageLevel)}</strong></div>`
+                      : ''
+                  }
 
-              <div class="st-checklist">
-                <span class="st-checklist-title">Interactive Diagnostic Rubric (${sc.passed}/${sc.total} passed)</span>
-                ${data.checks
-                  .map(
-                    (c, idx) => `
-                  <label class="st-check-item ${c.pass ? 'is-pass' : 'is-fail'}">
-                    <input
-                      type="checkbox"
-                      data-lens="${meta.id}"
-                      data-idx="${idx}"
-                      ${c.pass ? 'checked' : ''}
-                    />
-                    <span class="st-check-box" aria-hidden="true"></span>
-                    <span class="st-check-text">${escapeHtml(c.label)}</span>
-                  </label>
-                `
-                  )
-                  .join('')}
-              </div>
+                  <div class="st-diagnostic-blocks">
+                    <div class="st-diag-box is-risk">
+                      <span class="st-diag-label">Primary Failure Mode</span>
+                      <p>${escapeHtml(data.failureMode)}</p>
+                    </div>
+                    <div class="st-diag-box is-action">
+                      <span class="st-diag-label">First-Principles Directive</span>
+                      <p>${escapeHtml(data.directive)}</p>
+                    </div>
+                  </div>
+
+                  <div class="st-checklist">
+                    <span class="st-checklist-title">Interactive Diagnostic Rubric (${sc.passed}/${sc.total} passed)</span>
+                    ${data.checks
+                      .map(
+                        (c, idx) => `
+                      <label class="st-check-item ${c.pass ? 'is-pass' : 'is-fail'}">
+                        <input
+                          type="checkbox"
+                          data-lens="${meta.id}"
+                          data-idx="${idx}"
+                          ${c.pass ? 'checked' : ''}
+                        />
+                        <span class="st-check-box" aria-hidden="true"></span>
+                        <span class="st-check-text">${escapeHtml(c.label)}</span>
+                      </label>
+                    `
+                      )
+                      .join('')}
+                  </div>
+                </div>
+              </details>
             </article>
           `;
         }).join('')}

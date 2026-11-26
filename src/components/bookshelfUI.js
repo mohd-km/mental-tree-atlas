@@ -3,6 +3,7 @@ import { DOMAIN_MAP } from '../data/domains.js';
 
 export function initBookshelf(rootEl, onSelectBook) {
   let activeDomain = 'all';
+  let isExpanded = false;
 
   function render() {
     const books =
@@ -11,6 +12,36 @@ export function initBookshelf(rootEl, onSelectBook) {
         : BOOKSHELF.filter((b) => b.domain === activeDomain);
 
     const uniqueDomains = ['all', ...new Set(BOOKSHELF.map((b) => b.domain))];
+
+    if (!isExpanded) {
+      rootEl.innerHTML = `
+        <div class="bs-collapsed-bar">
+          <div class="bs-collapsed-copy">
+            <p class="bs-collapsed-title">17 foundational volumes across ${uniqueDomains.length - 1} disciplines</p>
+            <p class="bs-collapsed-sub">
+              Epistemology, physics, computing, biology, markets, systems dynamics, and character craft. Expand to filter by domain and illuminate any volume's linked mental models in the graph.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn-ghost bs-expand-btn"
+            id="bs-toggle-expand"
+            aria-expanded="false"
+          >
+            Show all ${BOOKSHELF.length} volumes
+          </button>
+        </div>
+      `;
+
+      const toggleBtn = rootEl.querySelector('#bs-toggle-expand');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          isExpanded = true;
+          render();
+        });
+      }
+      return;
+    }
 
     rootEl.innerHTML = `
       <div class="bs-filter-bar">
@@ -29,8 +60,17 @@ export function initBookshelf(rootEl, onSelectBook) {
             })
             .join('')}
         </div>
-        <span class="bs-hint">Click any volume to illuminate its mental models in the Observatory Graph.</span>
+        <button
+          type="button"
+          class="btn-ghost bs-collapse-btn"
+          id="bs-toggle-collapse"
+          aria-expanded="true"
+        >
+          Collapse bookshelf
+        </button>
       </div>
+
+      <p class="bs-hint">Select any volume to highlight its linked mental models in the Knowledge Graph.</p>
 
       <div class="bs-grid">
         ${books
@@ -60,6 +100,14 @@ export function initBookshelf(rootEl, onSelectBook) {
           .join('')}
       </div>
     `;
+
+    const collapseBtn = rootEl.querySelector('#bs-toggle-collapse');
+    if (collapseBtn) {
+      collapseBtn.addEventListener('click', () => {
+        isExpanded = false;
+        render();
+      });
+    }
 
     rootEl.querySelectorAll('[data-bs-dom]').forEach((btn) => {
       btn.addEventListener('click', () => {

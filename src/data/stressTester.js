@@ -43,51 +43,51 @@ export const SAMPLE_THESES = [
     presetAnalysis: {
       deutsch: {
         summary:
-          'Moderate causal specificity. The workflow bottleneck is real, but "built on frontier LLM APIs" is easy to vary—any competitor or the foundation model lab itself can replicate a thin prompt layer.',
-        failureMode: 'Model-provider absorption: the next frontier release ships native compliance templates, erasing the wrapper margin overnight.',
-        directive: 'Anchor the explanation in a proprietary, hard-to-vary mechanism: deterministic rule-engine verification, private audit-trail ground truth, or deep ERP write-back.',
+          'Weak causal moat. The compliance bottleneck is real, but "built on frontier LLM APIs" is easy to vary—any competitor or the model provider itself can replicate a thin prompt layer.',
+        failureMode: 'Model-provider absorption: the next frontier release ships native compliance templates, erasing wrapper margin overnight.',
+        directive: 'Anchor the explanation in a hard-to-vary mechanism: deterministic rule-engine verification, private audit-trail ground truth, or deep ERP write-back.',
         checks: [
-          { label: 'Causal mechanism cannot be swapped for a generic LLM prompt', pass: false },
-          { label: 'Explains why incumbents fail structurally, not just culturally', pass: true },
-          { label: 'Produces falsifiable accuracy benchmarks on real edge cases', pass: true },
-          { label: 'Value persists even if base model intelligence doubles tomorrow', pass: false }
+          { label: 'Causal mechanism cannot be swapped for a generic LLM prompt', pass: false, weight: 8 },
+          { label: 'Explains why incumbents fail structurally, not just culturally', pass: true, weight: 8 },
+          { label: 'Produces falsifiable accuracy benchmarks on real edge cases', pass: false, weight: 5 },
+          { label: 'Value persists even if base model intelligence doubles tomorrow', pass: false, weight: 4 }
         ]
       },
       taleb: {
         summary:
-          'Fragile to upstream API pricing, rate limits, and platform commoditization; low fixed capex keeps ruin risk bounded, but customer churn is convex downward.',
-        failureMode: 'Platform dependency + zero switching cost creates negative convexity during model price wars.',
-        directive: 'Apply via negativa: strip out generic chat interfaces and lock into multi-model routing plus sticky system-of-record workflows so model deflation becomes a tailwind.',
+          'Fragile to upstream API pricing, rate limits, and platform commoditization. Low fixed capex keeps immediate ruin risk bounded, but customer churn is convex downward.',
+        failureMode: 'Platform dependency plus low switching cost creates negative convexity during model price wars.',
+        directive: 'Apply via negativa: strip generic chat interfaces and lock into multi-model routing plus sticky system-of-record workflows so model deflation becomes a tailwind.',
         checks: [
-          { label: 'No single upstream API or platform holds a kill-switch', pass: false },
-          { label: 'Fixed burn stays low enough to survive a 12-month sales freeze', pass: true },
-          { label: 'Gains from AI model deflation rather than losing margin to it', pass: false },
-          { label: 'Customers bear measurable switching cost via workflow state', pass: true }
+          { label: 'No single upstream API or platform holds a kill-switch', pass: false, weight: 8 },
+          { label: 'Fixed burn stays low enough to survive a 12-month sales freeze', pass: true, weight: 6 },
+          { label: 'Gains from AI model deflation rather than losing margin to it', pass: false, weight: 6 },
+          { label: 'Customers bear measurable switching cost via workflow state', pass: true, weight: 5 }
         ]
       },
       musk: {
         summary:
           'High risk of automating a bloated legacy compliance checklist instead of deleting redundant steps before introducing AI.',
         failureMode: 'Automating 14 manual review stages when 10 exist solely to satisfy outdated internal sign-off theatre.',
-        directive: 'Step 1-2 first: name the regulator or officer behind every field, delete non-statutory steps, simplify into one structured schema, then automate extraction.',
+        directive: 'Run Steps 1-2 first: name the regulator or officer behind every field, delete non-statutory steps, simplify into one structured schema, then automate extraction.',
         checks: [
-          { label: 'Every workflow requirement traced to a specific legal or human owner', pass: true },
-          { label: 'At least 30% of legacy manual steps deleted before AI automation', pass: false },
-          { label: 'Unit inference + human QA cost approaches the theoretical floor', pass: true },
-          { label: 'Cycle time compressed by an order of magnitude, not 15%', pass: false }
+          { label: 'Every workflow requirement traced to a specific legal or human owner', pass: true, weight: 7 },
+          { label: 'At least 30% of legacy manual steps deleted before AI automation', pass: false, weight: 6 },
+          { label: 'Unit inference + human QA cost approaches the theoretical floor', pass: true, weight: 7 },
+          { label: 'Cycle time compressed by an order of magnitude, not 15%', pass: false, weight: 5 }
         ]
       },
       meadows: {
         summary:
-          'Intervenes primarily at Level 12 (parameters: faster drafting) unless it closes the real-time compliance feedback loop (Level 6: information flows).',
-        leverageLevel: 'Level 6 — Information Flows (if closing audit feedback) / Level 12 — Parameters (if only drafting)',
+          'Intervenes mostly at Level 12 (parameters: faster drafting) rather than closing the real-time compliance feedback loop (Level 6: information flows).',
+        leverageLevel: 'Level 12 — Parameters (faster drafting) unless closing Level 6 audit feedback',
         failureMode: 'Faster document generation increases downstream review congestion if the approval bottleneck remains untouched.',
         directive: 'Move up the leverage hierarchy: surface live violation telemetry directly to frontline operators before filings are ever generated.',
         checks: [
-          { label: 'Intervenes above parameter-tweaking (alters feedback or rules)', pass: false },
-          { label: 'Shortens feedback delay between operational error and detection', pass: true },
-          { label: 'Creates a reinforcing data-quality loop as usage compounds', pass: true },
-          { label: 'Aligns buyer, compliance officer, and end-operator incentives', pass: false }
+          { label: 'Intervenes above parameter-tweaking (alters feedback or rules)', pass: false, weight: 8 },
+          { label: 'Shortens feedback delay between operational error and detection', pass: true, weight: 9 },
+          { label: 'Creates a reinforcing data-quality loop as usage compounds', pass: false, weight: 4 },
+          { label: 'Aligns buyer, compliance officer, and end-operator incentives', pass: false, weight: 4 }
         ]
       }
     }
@@ -105,10 +105,10 @@ export const SAMPLE_THESES = [
         failureMode: 'Fast-charging chemistry (5-10 min LFP) reaches cost parity, invalidating the core physical need for mechanical swap cabinets.',
         directive: 'Tighten the thesis around fleet density, thermal battery-life extension in climate-controlled cabinets, and grid peak-shaving arbitrage.',
         checks: [
-          { label: 'Mechanism directly addresses physical downtime and capex barriers', pass: true },
-          { label: 'Explains why fast-charging will not obsolete swap stations in 5 years', pass: false },
-          { label: 'Pack standardization lock-in is specified rather than assumed', pass: true },
-          { label: 'Utilization math holds per station, not only in network averages', pass: true }
+          { label: 'Mechanism directly addresses physical downtime and capex barriers', pass: true, weight: 7 },
+          { label: 'Explains why fast-charging will not obsolete swap stations in 5 years', pass: false, weight: 6 },
+          { label: 'Pack standardization lock-in is specified rather than assumed', pass: true, weight: 6 },
+          { label: 'Utilization math holds per station, not only in network averages', pass: true, weight: 6 }
         ]
       },
       taleb: {
@@ -117,22 +117,22 @@ export const SAMPLE_THESES = [
         failureMode: 'Utilization falls 25% below forecast while debt service and battery degradation remain fixed, triggering a liquidity spiral.',
         directive: 'De-risk via barbell deployment: co-locate stations inside existing dark stores with anchor fleet take-or-pay contracts before expanding citywide.',
         checks: [
-          { label: 'Asset-light or partner-hosted real estate avoids fixed lease ruin', pass: false },
-          { label: 'Battery capex matched to long-duration asset financing, not equity burn', pass: false },
-          { label: 'Anchor fleet contracts cover base station utilization floor', pass: true },
-          { label: 'Redundant pack chemistry roadmap hedges commodity lithium shocks', pass: true }
+          { label: 'Asset-light or partner-hosted real estate avoids fixed lease ruin', pass: false, weight: 7 },
+          { label: 'Battery capex matched to long-duration asset financing, not equity burn', pass: false, weight: 6 },
+          { label: 'Anchor fleet contracts cover base station utilization floor', pass: true, weight: 7 },
+          { label: 'Redundant pack chemistry roadmap hedges commodity lithium shocks', pass: false, weight: 5 }
         ]
       },
       musk: {
         summary:
           'Physics floor is set by kWh-per-km, cycle life, and pack weight. Mechanical robotics inside swap cabinets often violate the deletion algorithm when a 10 kg manual slide-in pack works faster.',
         failureMode: 'Over-engineering robotic swap arms that jam in dust and rain instead of deleting motorized linkages altogether.',
-        directive: 'Delete robotic actuators for two-wheelers; standardize one rugged connector, simplify station thermal control, and accelerate swap turnaround under 45 seconds.',
+        directive: 'Delete robotic actuators for two-wheelers; standardize one rugged connector, simplify station thermal control, and keep swap turnaround under 45 seconds.',
         checks: [
-          { label: 'Bill-of-materials modeled down to raw cell $/kWh and cycle-life floor', pass: true },
-          { label: 'Unnecessary mechanical/robotic station complexity deleted', pass: true },
-          { label: 'Station uptime and swap time verified in harsh field conditions', pass: false },
-          { label: 'Pack telemetry pinpoints cell degradation before field failure', pass: true }
+          { label: 'Bill-of-materials modeled down to raw cell $/kWh and cycle-life floor', pass: true, weight: 6 },
+          { label: 'Unnecessary mechanical/robotic station complexity deleted', pass: true, weight: 6 },
+          { label: 'Station uptime and swap time verified in harsh field conditions', pass: false, weight: 8 },
+          { label: 'Pack telemetry pinpoints cell degradation before field failure', pass: true, weight: 5 }
         ]
       },
       meadows: {
@@ -142,10 +142,10 @@ export const SAMPLE_THESES = [
         failureMode: 'Local utility tariff delays and fleet-aggregator bargaining power act as strong balancing loops compressing per-swap margin.',
         directive: 'Capture Level 6 information flows by linking pack state-of-health telemetry to dynamic off-peak charging tariffs.',
         checks: [
-          { label: 'Changes economic rules of ownership (capex to per-km opex)', pass: true },
-          { label: 'Network density creates a reinforcing rider-availability loop', pass: true },
-          { label: 'Time delays in grid permits and station rollouts are buffered', pass: false },
-          { label: 'Avoids single-aggregator monopsony squeeze on swap pricing', pass: false }
+          { label: 'Changes economic rules of ownership (capex to per-km opex)', pass: true, weight: 8 },
+          { label: 'Network density creates a reinforcing rider-availability loop', pass: true, weight: 6 },
+          { label: 'Time delays in grid permits and station rollouts are buffered', pass: false, weight: 7 },
+          { label: 'Avoids single-aggregator monopsony squeeze on swap pricing', pass: true, weight: 4 }
         ]
       }
     }
@@ -163,34 +163,34 @@ export const SAMPLE_THESES = [
         failureMode: 'Drifting from evidence-based biomarkers into unverified anti-aging supplements erodes scientific credibility and turns the clinic into a lifestyle spa.',
         directive: 'Enforce strict epistemic hygiene: separate causal, randomized-backed interventions from speculative protocols with transparent evidence tiers.',
         checks: [
-          { label: 'Core protocols anchored in causal biomarkers (ApoB, HbA1c, VO2 max)', pass: true },
-          { label: 'Clearly distinguishes proven medicine from speculative hype', pass: true },
-          { label: 'Explains why members stay after initial year-one test novelty fades', pass: false },
-          { label: 'Clinical outcomes are tracked longitudinally, not by anecdotes', pass: true }
+          { label: 'Core protocols anchored in causal biomarkers (ApoB, HbA1c, VO2 max)', pass: true, weight: 8 },
+          { label: 'Clearly distinguishes proven medicine from speculative hype', pass: true, weight: 6 },
+          { label: 'Explains why members stay after initial year-one test novelty fades', pass: false, weight: 5 },
+          { label: 'Clinical outcomes are tracked longitudinally, not by anecdotes', pass: true, weight: 6 }
         ]
       },
       taleb: {
         summary:
-          'Low technological obsolescence risk, but high clinical-liability tail risk and physician-labor bottleneck. Over-testing without clear action thresholds creates iatrogenic harm.',
+          'Low technological obsolescence risk, but real clinical-liability tail risk and physician-labor bottlenecks. Over-testing without clear action thresholds creates iatrogenic harm.',
         failureMode: 'False positives from aggressive whole-body screening trigger unnecessary invasive follow-ups and reputational tail events.',
         directive: 'Apply via negativa first: eliminate metabolic, sleep, and cardiovascular risk factors before prescribing exotic compounds; standardize clinical guardrails.',
         checks: [
-          { label: 'Prioritizes via negativa (removing risk) over polypharmacy', pass: true },
-          { label: 'Strict screening protocols cap false-positive iatrogenic harm', pass: false },
-          { label: 'Software & nurses decouple clinic margin from scarce MD hours', pass: false },
-          { label: 'High annual retention cushions customer acquisition cost', pass: true }
+          { label: 'Prioritizes via negativa (removing risk) over polypharmacy', pass: true, weight: 7 },
+          { label: 'Strict screening protocols cap false-positive iatrogenic harm', pass: false, weight: 6 },
+          { label: 'Software & nurses decouple clinic margin from scarce MD hours', pass: false, weight: 6 },
+          { label: 'High annual retention cushions customer acquisition cost', pass: true, weight: 6 }
         ]
       },
       musk: {
         summary:
-          'Traditional clinics drown in fragmented labs, manual PDF reports, and redundant intake forms. Massive deletion opportunity in diagnostic turnaround and longitudinal charting.',
+          'Traditional clinics drown in fragmented labs, manual PDF reports, and redundant intake forms. Strong deletion opportunity in diagnostic turnaround and longitudinal charting.',
         failureMode: 'Hiring an army of concierge coordinators to glue together broken lab portals instead of deleting manual handoffs.',
         directive: 'Delete multi-visit diagnostic friction: unify blood draw, DEXA, VO2 max, and automated biomarker ingestion into a single half-day baseline loop.',
         checks: [
-          { label: 'Redundant intake and lab-reconciliation steps deleted', pass: true },
-          { label: 'Diagnostic-to-protocol cycle compressed from weeks to 48 hours', pass: true },
-          { label: 'Unit economics work beyond the top 0.5% luxury concierge tier', pass: false },
-          { label: 'AI handles longitudinal synthesis while clinicians own judgment', pass: true }
+          { label: 'Redundant intake and lab-reconciliation steps deleted', pass: true, weight: 6 },
+          { label: 'Diagnostic-to-protocol cycle compressed from weeks to 48 hours', pass: true, weight: 5 },
+          { label: 'Unit economics work beyond the top 0.5% luxury concierge tier', pass: false, weight: 9 },
+          { label: 'Software handles longitudinal synthesis while clinicians own judgment', pass: true, weight: 5 }
         ]
       },
       meadows: {
@@ -200,10 +200,10 @@ export const SAMPLE_THESES = [
         failureMode: 'Long feedback delays (decades between habit change and mortality outcome) weaken member motivation without tight proximal loops.',
         directive: 'Engineer short-horizon Level 6 feedback loops (quarterly ApoB, CGM stability, strength benchmarks) so members see compounding progress every 90 days.',
         checks: [
-          { label: 'Redefines the system goal from reactive billing to healthspan', pass: true },
-          { label: 'Compresses decade-long health lag into 90-day measurable loops', pass: true },
-          { label: 'Incentive structure rewards member improvement, not visit volume', pass: true },
-          { label: 'Protocol adherence survives outside the clinic walls', pass: false }
+          { label: 'Redefines the system goal from reactive billing to healthspan', pass: true, weight: 8 },
+          { label: 'Compresses decade-long health lag into 90-day measurable loops', pass: true, weight: 7 },
+          { label: 'Incentive structure rewards member improvement, not visit volume', pass: true, weight: 6 },
+          { label: 'Protocol adherence survives outside the clinic walls', pass: false, weight: 4 }
         ]
       }
     }
@@ -221,10 +221,10 @@ export const SAMPLE_THESES = [
         failureMode: '98% pick accuracy sounds impressive in demos, but a 2% exception rate across 10,000 daily picks halts the line 200 times a day.',
         directive: 'Define the exact SKU envelope and human-in-the-loop teleoperation recovery budget as an explicit part of the core mechanism.',
         checks: [
-          { label: 'Explicitly accounts for the 1-2% long-tail grasping exception rate', pass: false },
-          { label: 'Per-pick pricing beats human fully-loaded labor cost with margin', pass: true },
-          { label: 'Hardware + control stack co-designed rather than bolted together', pass: true },
-          { label: 'Deployment requires zero structural warehouse renovation', pass: true }
+          { label: 'Explicitly accounts for the 1-2% long-tail grasping exception rate', pass: false, weight: 10 },
+          { label: 'Per-pick pricing beats human fully-loaded labor cost with margin', pass: true, weight: 5 },
+          { label: 'Hardware + control stack co-designed rather than bolted together', pass: true, weight: 5 },
+          { label: 'Deployment requires zero structural warehouse renovation', pass: true, weight: 5 }
         ]
       },
       taleb: {
@@ -233,22 +233,22 @@ export const SAMPLE_THESES = [
         failureMode: 'Seasonal e-commerce slumps leave leased fleets idle while hardware depreciation and field-service costs continue unabated.',
         directive: 'Require multi-year minimum pick commitments and modular off-the-shelf subassemblies to cap inventory and service tail risk.',
         checks: [
-          { label: 'Minimum volume covenants protect fleet payback during slow quarters', pass: false },
-          { label: 'Hardware BOM uses commodity actuators where custom adds no moat', pass: true },
-          { label: 'Remote teleop fallback prevents catastrophic warehouse downtime', pass: true },
-          { label: 'Fleet telemetry makes every failure improve the entire installed base', pass: true }
+          { label: 'Minimum volume covenants protect fleet payback during slow quarters', pass: false, weight: 9 },
+          { label: 'Hardware BOM uses commodity actuators where custom adds no moat', pass: true, weight: 5 },
+          { label: 'Remote teleop fallback prevents catastrophic warehouse downtime', pass: true, weight: 5 },
+          { label: 'Fleet telemetry makes every failure improve the entire installed base', pass: false, weight: 6 }
         ]
       },
       musk: {
         summary:
-          'High temptation to build humanoid dexterity when a simpler suction + parallel-jaw gantry handles 85% of SKUs at one-fifth the BOM cost.',
+          'High temptation to build humanoid dexterity when a simpler suction plus parallel-jaw gantry handles 85% of SKUs at one-fifth the BOM cost.',
         failureMode: 'Automating rare edge-case grasps before deleting warehouse slotting chaos.',
         directive: 'Delete degrees of freedom that serve <5% of SKUs; optimize cycle speed on high-velocity bins first and leave oddball items to human lanes.',
         checks: [
-          { label: 'Deleted unnecessary actuators and humanoid complexity for target SKUs', pass: true },
-          { label: 'Hardware BOM trajectory modeled to cross <18-month payback', pass: false },
-          { label: 'Site commissioning compressed from months to under 7 days', pass: false },
-          { label: 'Field-replaceable modules keep mean time to repair under 15 minutes', pass: true }
+          { label: 'Deleted unnecessary actuators and humanoid complexity for target SKUs', pass: true, weight: 7 },
+          { label: 'Hardware BOM trajectory modeled to cross <18-month payback', pass: false, weight: 6 },
+          { label: 'Site commissioning compressed from months to under 7 days', pass: false, weight: 6 },
+          { label: 'Field-replaceable modules keep mean time to repair under 15 minutes', pass: true, weight: 6 }
         ]
       },
       meadows: {
@@ -258,10 +258,10 @@ export const SAMPLE_THESES = [
         failureMode: 'Optimizing robot pick speed while upstream receiving and downstream packing remain manual creates immediate queue bottlenecks.',
         directive: 'Map end-to-end dock-to-dock stock flows so robot throughput synchronizes with WMS slotting and carrier cutoffs.',
         checks: [
-          { label: 'Synchronizes with upstream/downstream warehouse bottlenecks', pass: false },
-          { label: 'Fleet learning creates a reinforcing cross-site accuracy loop', pass: true },
-          { label: 'Outcome-based pricing aligns vendor and 3PL incentives', pass: true },
-          { label: 'Installation avoids multi-quarter IT integration delays', pass: true }
+          { label: 'Synchronizes with upstream/downstream warehouse bottlenecks', pass: false, weight: 6 },
+          { label: 'Fleet learning creates a reinforcing cross-site accuracy loop', pass: true, weight: 7 },
+          { label: 'Outcome-based pricing aligns vendor and 3PL incentives', pass: true, weight: 6 },
+          { label: 'Installation avoids multi-quarter IT integration delays', pass: true, weight: 6 }
         ]
       }
     }
@@ -279,34 +279,34 @@ export const SAMPLE_THESES = [
         failureMode: 'Relying on green subsidies rather than unsubsidized levelized cost of energy (LCOE) parity leaves the thesis vulnerable to policy swings.',
         directive: 'Prove the unit economics strictly on unsubsidized tariff arbitrage and diesel-backup displacement before counting carbon credits.',
         checks: [
-          { label: 'Economics close on unsubsidized tariff savings without policy handouts', pass: true },
-          { label: 'Load-profile mismatch and cloud intermittency modeled hourly', pass: true },
-          { label: 'Explains why utilities cannot trivially replicate the on-site dispatch', pass: true },
-          { label: 'Interconnection and net-metering rules verified per state/grid', pass: false }
+          { label: 'Economics close on unsubsidized tariff savings without policy handouts', pass: true, weight: 8 },
+          { label: 'Load-profile mismatch and cloud intermittency modeled hourly', pass: true, weight: 7 },
+          { label: 'Explains why utilities cannot trivially replicate the on-site dispatch', pass: true, weight: 7 },
+          { label: 'Interconnection and net-metering rules verified per state/grid', pass: false, weight: 3 }
         ]
       },
       taleb: {
         summary:
-          'Long-term power purchase agreements offer predictable cash flows, but counterparty credit risk and regulatory tariff changes introduce hidden tail exposure.',
+          'Long-term power purchase agreements offer predictable cash flows, while containerized hardware retains salvage mobility—though counterparty credit and thermal safety require discipline.',
         failureMode: 'An anchor industrial tenant defaults or regulators impose punitive standby grid charges mid-contract.',
         directive: 'Standardize containerized, relocatable battery skids and diversify across multi-tenant industrial parks so assets retain salvage mobility.',
         checks: [
-          { label: 'Modular containerized hardware can be redeployed if a tenant fails', pass: true },
-          { label: 'Project debt is non-recourse at the SPV level, isolating parent ruin', pass: true },
-          { label: 'Multi-tenant park demand hedges single-factory shutdown risk', pass: true },
-          { label: 'Battery warranty and thermal safety eliminate catastrophic fire tail risk', pass: false }
+          { label: 'Modular containerized hardware can be redeployed if a tenant fails', pass: true, weight: 6 },
+          { label: 'Project debt is non-recourse at the SPV level, isolating parent ruin', pass: true, weight: 6 },
+          { label: 'Multi-tenant park demand hedges single-factory shutdown risk', pass: true, weight: 6 },
+          { label: 'Battery warranty and thermal safety eliminate catastrophic fire tail risk', pass: false, weight: 7 }
         ]
       },
       musk: {
         summary:
-          'Soft costs (permitting, custom site engineering, EPC markup) often exceed solar + LFP hardware costs. Huge gains from standardizing pre-engineered microgrid blocks.',
+          'Soft costs (permitting, custom site engineering, EPC markup) often exceed solar plus LFP hardware costs. Largest gains come from standardizing pre-engineered microgrid blocks.',
         failureMode: 'Bespoke civil and electrical engineering for every factory roof slows deployment to a crawl.',
         directive: 'Delete bespoke site designs: ship standardized 500 kWh modular skids with automated remote commissioning and predictive BMS telemetry.',
         checks: [
-          { label: 'Soft-cost and bespoke EPC engineering overhead aggressively deleted', pass: false },
-          { label: 'LCOE tracked against raw polysilicon and LFP cell cost curves', pass: true },
-          { label: 'Automated EMS dispatch maximizes peak-shaving without manual operators', pass: true },
-          { label: 'Installation lead time compressed via pre-wired modular skids', pass: true }
+          { label: 'Soft-cost and bespoke EPC engineering overhead aggressively deleted', pass: false, weight: 8 },
+          { label: 'LCOE tracked against raw polysilicon and LFP cell cost curves', pass: true, weight: 6 },
+          { label: 'Automated EMS dispatch maximizes peak-shaving without manual operators', pass: true, weight: 6 },
+          { label: 'Installation lead time compressed via pre-wired modular skids', pass: true, weight: 5 }
         ]
       },
       meadows: {
@@ -316,10 +316,10 @@ export const SAMPLE_THESES = [
         failureMode: 'Grid interconnection queues act as a severe time delay (Level 9) that can stall capital deployment for 12-18 months.',
         directive: 'Prioritize behind-the-meter self-consumption configurations that bypass lengthy export-approval bottlenecks.',
         checks: [
-          { label: 'Behind-the-meter architecture bypasses slow export-grid delays', pass: true },
-          { label: 'Real-time tariff telemetry drives automated charge/discharge loops', pass: true },
-          { label: 'Shifts industrial parks from passive buyers to self-organizing nodes', pass: true },
-          { label: 'Aligns factory CFO savings with decarbonization targets', pass: true }
+          { label: 'Behind-the-meter architecture bypasses slow export-grid delays', pass: true, weight: 7 },
+          { label: 'Real-time tariff telemetry drives automated charge/discharge loops', pass: true, weight: 6 },
+          { label: 'Shifts industrial parks from passive buyers to self-organizing nodes', pass: true, weight: 6 },
+          { label: 'Aligns factory CFO savings with decarbonization targets', pass: true, weight: 4 }
         ]
       }
     }

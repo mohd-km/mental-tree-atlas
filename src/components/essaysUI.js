@@ -4,6 +4,8 @@ import { groupEssaysByDomain } from '../data/essays.js';
 export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
   let activeDomain = 'all';
   let searchQuery = '';
+  const expandedDomains = new Set();
+  const PREVIEW_LIMIT = 2;
 
   function getFilteredEssays() {
     const q = searchQuery.trim().toLowerCase();
@@ -77,6 +79,11 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
           : `<div class="essays-groups">
               ${groups
                 .map(({ domain, essays: domainEssays }) => {
+                  const isFiltered = activeDomain !== 'all' || searchQuery.trim().length > 0;
+                  const isExpanded = isFiltered || expandedDomains.has(domain.id);
+                  const visibleEssays = isExpanded ? domainEssays : domainEssays.slice(0, PREVIEW_LIMIT);
+                  const hiddenCount = domainEssays.length - visibleEssays.length;
+
                   return `
                     <div class="essay-domain-group">
                       <div class="essay-domain-head">
@@ -89,7 +96,7 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
                       </div>
 
                       <div class="essays-grid">
-                        ${domainEssays
+                        ${visibleEssays
                           .map((essay) => {
                             const dom = DOMAIN_MAP[essay.domain];
                             const linkedNodes = essay.nodeIds
@@ -146,6 +153,23 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
                           })
                           .join('')}
                       </div>
+
+                      ${
+                        !isFiltered && domainEssays.length > PREVIEW_LIMIT
+                          ? `
+                        <div class="essay-domain-toggle-row">
+                          <button
+                            type="button"
+                            class="btn-ghost essay-domain-toggle"
+                            data-toggle-domain="${domain.id}"
+                            aria-expanded="${isExpanded ? 'true' : 'false'}"
+                          >
+                            ${isExpanded ? 'Show fewer' : `Show all (${domainEssays.length})`}
+                          </button>
+                        </div>
+                      `
+                          : ''
+                      }
                     </div>
                   `;
                 })
@@ -182,6 +206,18 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
         if (onSelectNode) {
           onSelectNode(chip.dataset.essayJumpNode);
         }
+      });
+    });
+
+    rootEl.querySelectorAll('[data-toggle-domain]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const domId = btn.dataset.toggleDomain;
+        if (expandedDomains.has(domId)) {
+          expandedDomains.delete(domId);
+        } else {
+          expandedDomains.add(domId);
+        }
+        render();
       });
     });
   }

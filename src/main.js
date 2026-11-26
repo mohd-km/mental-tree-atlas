@@ -333,12 +333,41 @@ initStressTester(document.getElementById('stress-tester-root'));
 initBookshelf(document.getElementById('bookshelf-root'), (book) => {
   renderDomainFilters('all');
   searchInput.value = '';
-  bookBannerText.textContent = `Illuminating ${book.nodeIds.length} mental models from "${book.title}" by ${book.author}.`;
+  bookBannerText.textContent = `Highlighting ${book.nodeIds.length} mental models from "${book.title}" by ${book.author}.`;
   bookBanner.hidden = false;
   searchCount.textContent = `${book.nodeIds.length} volume nodes`;
   graph.highlightBookNodes(book.nodeIds);
   document.getElementById('observatory').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
+
+// Sticky section jump bar active state
+const jumpLinks = Array.from(document.querySelectorAll('.section-jump-bar a[href^="#"]'));
+const trackedSections = jumpLinks
+  .map((link) => document.querySelector(link.getAttribute('href')))
+  .filter(Boolean);
+
+if (jumpLinks.length > 0 && 'IntersectionObserver' in window) {
+  const setActiveJump = (id) => {
+    jumpLinks.forEach((link) => {
+      const active = link.getAttribute('href') === `#${id}`;
+      link.classList.toggle('is-active', active);
+      if (active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  };
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((e) => e.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visible.length > 0) {
+        setActiveJump(visible[0].target.id);
+      }
+    },
+    { rootMargin: '-20% 0px -65% 0px', threshold: 0.01 }
+  );
+  trackedSections.forEach((sec) => observer.observe(sec));
+}
 
 function escapeHtml(str) {
   return String(str)

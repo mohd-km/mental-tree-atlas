@@ -251,7 +251,7 @@ export class ObservatoryGraph {
   }
 
   zoomBy(factor) {
-    const nextScale = Math.max(0.45, Math.min(2.6, this.cam.scale * factor));
+    const nextScale = Math.max(0.26, Math.min(2.6, this.cam.scale * factor));
     const ratio = nextScale / this.cam.scale;
     this.targetCam = {
       x: this.cam.x * ratio,
@@ -261,23 +261,46 @@ export class ObservatoryGraph {
   }
 
   fitToView(animate = true) {
+    const isMobile = this.width < 640;
+    const labelR = 320;
+    const labelHalfW = isMobile ? 105 : 135;
+    const labelPadY = 32;
+
     let minX = Infinity;
     let maxX = -Infinity;
     let minY = Infinity;
     let maxY = -Infinity;
     for (const n of this.nodes) {
-      if (n.x < minX) minX = n.x;
-      if (n.x > maxX) maxX = n.x;
-      if (n.y < minY) minY = n.y;
-      if (n.y > maxY) maxY = n.y;
+      if (n.x - 40 < minX) minX = n.x - 40;
+      if (n.x + 40 > maxX) maxX = n.x + 40;
+      if (n.y - 40 < minY) minY = n.y - 40;
+      if (n.y + 40 > maxY) maxY = n.y + 40;
     }
-    const spanX = Math.max(400, maxX - minX + 180);
-    const spanY = Math.max(360, maxY - minY + 180);
-    const minScale = this.width < 640 ? 0.36 : 0.55;
-    const scale = Math.max(minScale, Math.min(1.15, Math.min(this.width / spanX, this.height / spanY)));
+
+    // Include domain watermark label extents so no cluster label is ever clipped
+    for (const dom of DOMAINS) {
+      const lx = Math.cos(dom.angle) * labelR;
+      const ly = Math.sin(dom.angle) * labelR;
+      if (lx - labelHalfW < minX) minX = lx - labelHalfW;
+      if (lx + labelHalfW > maxX) maxX = lx + labelHalfW;
+      if (ly - labelPadY < minY) minY = ly - labelPadY;
+      if (ly + labelPadY > maxY) maxY = ly + labelPadY;
+    }
+
+    const padX = isMobile ? 24 : 52;
+    const padTop = isMobile ? 24 : 40;
+    const padBottom = isMobile ? 24 : 74;
+    const availW = Math.max(180, this.width - padX * 2);
+    const availH = Math.max(200, this.height - padTop - padBottom);
+
+    const spanX = Math.max(480, maxX - minX);
+    const spanY = Math.max(440, maxY - minY);
+    const minScale = isMobile ? 0.26 : 0.45;
+    const scale = Math.max(minScale, Math.min(1.08, Math.min(availW / spanX, availH / spanY)));
     const cx = (minX + maxX) / 2;
     const cy = (minY + maxY) / 2;
-    const goal = { x: -cx * scale, y: -cy * scale, scale };
+    const yBias = (padTop - padBottom) / 2;
+    const goal = { x: -cx * scale, y: -cy * scale + yBias, scale };
     if (animate) {
       this.targetCam = goal;
     } else {
@@ -392,6 +415,8 @@ export class ObservatoryGraph {
     }
 
     // Soft cluster nebula halos & domain watermark labels
+    const isMobile = this.width < 640;
+    const labelR = 320;
     for (const dom of DOMAINS) {
       const ax = Math.cos(dom.angle) * 240;
       const ay = Math.sin(dom.angle) * 240;
@@ -404,17 +429,31 @@ export class ObservatoryGraph {
       ctx.arc(ax, ay, 165, 0, Math.PI * 2);
       ctx.fill();
 
-      // Cluster title
-      ctx.font = `600 ${Math.max(10, 11 / Math.sqrt(this.cam.scale))}px Inter, system-ui, sans-serif`;
+      // Cluster title — clamp in screen space so labels never clip at canvas edges
+      const fontSize = isMobile
+        ? Math.max(10, 10.5 / Math.sqrt(this.cam.scale))
+        : Math.max(10.5, 11 / Math.sqrt(this.cam.scale));
+      ctx.font = `600 ${fontSize}px Inter, system-ui, sans-serif`;
       ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       ctx.fillStyle = dimmed ? 'rgba(148, 163, 184, 0.16)' : dom.color;
-      ctx.globalAlpha = dimmed ? 0.3 : 0.65;
-      const labelR = 355;
-      ctx.fillText(
-        dom.name.toUpperCase(),
-        Math.cos(dom.angle) * labelR,
-        Math.sin(dom.angle) * labelR
-      );
+      ctx.globalAlpha = dimmed ? 0.3 : 0.72;
+      const labelText = isMobile ? dom.short.toUpperCase() : dom.name.toUpperCase();
+      let lx = Math.cos(dom.angle) * labelR;
+      let ly = Math.sin(dom.angle) * labelR;
+      const halfTextW = (ctx.measureText(labelText).width / 2);
+      const padWorld = 16 / this.cam.scale;
+      const leftBound = (-this.width / 2 - this.cam.x) / this.cam.scale + halfTextW + padWorld;
+      const rightBound = (this.width / 2 - this.cam.x) / this.cam.scale - halfTextW - padWorld;
+      const topBound = (-this.height / 2 - this.cam.y) / this.cam.scale + fontSize + padWorld;
+      const bottomBound = (this.height / 2 - this.cam.y) / this.cam.scale - fontSize - padWorld;
+      if (leftBound < rightBound) {
+        lx = Math.max(leftBound, Math.min(rightBound, lx));
+      }
+      if (topBound < bottomBound) {
+        ly = Math.max(topBound, Math.min(bottomBound, ly));
+      }
+      ctx.fillText(labelText, lx, ly);
       ctx.globalAlpha = 1;
     }
 
@@ -537,15 +576,20 @@ export class ObservatoryGraph {
         ctx.stroke();
       }
 
-      // Labels
-      const showLabel =
-        this.showAllLabels ||
-        isFocused ||
-        isSelected ||
-        (focus && isNeighbor) ||
-        (hasFilter && matches) ||
-        (this.cam.scale >= 1.1 && n.weight >= 1.15) ||
-        n.weight >= 1.3;
+      // Labels — fewer labels on mobile with tap-to-reveal
+      const showLabel = isMobile
+        ? this.showAllLabels ||
+          isFocused ||
+          isSelected ||
+          (focus && isNeighbor) ||
+          (hasFilter && matches)
+        : this.showAllLabels ||
+          isFocused ||
+          isSelected ||
+          (focus && isNeighbor) ||
+          (hasFilter && matches) ||
+          (this.cam.scale >= 1.1 && n.weight >= 1.15) ||
+          n.weight >= 1.3;
 
       if (showLabel && nodeAlpha > 0.25) {
         const fontSize = Math.max(9.5, (isFocused || isSelected ? 12 : 10.5) / Math.sqrt(this.cam.scale));
@@ -688,7 +732,7 @@ export class ObservatoryGraph {
         this.targetCam = null;
         const pos = getPos(e);
         const factor = e.deltaY < 0 ? 1.12 : 0.89;
-        const nextScale = Math.max(0.45, Math.min(2.6, this.cam.scale * factor));
+        const nextScale = Math.max(0.26, Math.min(2.6, this.cam.scale * factor));
         const wx = (pos.x - this.width / 2 - this.cam.x) / this.cam.scale;
         const wy = (pos.y - this.height / 2 - this.cam.y) / this.cam.scale;
         this.cam.scale = nextScale;
@@ -699,7 +743,11 @@ export class ObservatoryGraph {
     );
 
     window.addEventListener('resize', () => {
+      const prevW = this.width;
       this.resize();
+      if (Math.abs(this.width - prevW) > 24 && !this.selectedNode) {
+        this.fitToView(false);
+      }
     });
   }
 }
