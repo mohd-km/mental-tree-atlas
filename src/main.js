@@ -1,18 +1,24 @@
 import { DOMAINS, DOMAIN_MAP } from './data/domains.js';
 import { NODES, LINKS } from './data/knowledgeGraph.js';
+import { loadEssays, getEssaysForNode } from './data/essays.js';
 import { ObservatoryGraph } from './components/graphEngine.js';
+import { initEssaysIndex } from './components/essaysUI.js';
 import { initStressTester } from './components/stressTesterUI.js';
 import { initBookshelf } from './components/bookshelfUI.js';
 
 // Update hero stats dynamically from real data
 const statNodes = document.getElementById('stat-nodes');
 const statBridges = document.getElementById('stat-bridges');
+const statEssays = document.getElementById('stat-essays');
+const nodeMap = new Map(NODES.map((n) => [n.id, n]));
 const nodeDomainById = Object.fromEntries(NODES.map((n) => [n.id, n.domain]));
 const crossBridgeCount = LINKS.filter(
   (l) => nodeDomainById[l.source] && nodeDomainById[l.target] && nodeDomainById[l.source] !== nodeDomainById[l.target]
 ).length;
 if (statNodes) statNodes.textContent = String(NODES.length);
 if (statBridges) statBridges.textContent = String(crossBridgeCount);
+
+let publishedEssays = [];
 
 // DOM elements for Knowledge Graph
 const canvas = document.getElementById('graph-canvas');
@@ -37,13 +43,15 @@ const graph = new ObservatoryGraph(canvas, NODES, LINKS, {
       return;
     }
     const dom = DOMAIN_MAP[node.domain];
+    const nodeEssays = getEssaysForNode(publishedEssays, node.id);
+    const essayMeta = nodeEssays.length > 0 ? ` &middot; ${nodeEssays.length} ${nodeEssays.length === 1 ? 'essay' : 'essays'}` : '';
     tooltip.innerHTML = `
       <div class="tt-top">
         <span style="color: ${dom.color}">${dom.name}</span>
         <span>${node.code}</span>
       </div>
       <div class="tt-title">${escapeHtml(node.title)}</div>
-      <div class="tt-meta">${node.degree} links &middot; ${node.crossDegree} cross-domain bridges</div>
+      <div class="tt-meta">${node.degree} links &middot; ${node.crossDegree} cross-domain bridges${essayMeta}</div>
     `;
     tooltip.hidden = false;
 
@@ -162,6 +170,7 @@ function openDrawer(node) {
 
   const crossLinks = connected.filter((c) => c.isCross);
   const sameLinks = connected.filter((c) => !c.isCross);
+  const relatedEssays = getEssaysForNode(publishedEssays, node.id);
 
   const renderLinkList = (items) =>
     items
@@ -179,6 +188,24 @@ function openDrawer(node) {
       })
       .join('');
 
+  const renderEssayList = (items) =>
+    items
+      .map(
+        (essay) => `
+          <a
+            href="${escapeHtml(essay.url)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="drawer-essay-card"
+          >
+            <span class="drawer-essay-title">${escapeHtml(essay.title)}</span>
+            <span class="drawer-essay-excerpt">${escapeHtml(essay.excerpt)}</span>
+            <span class="drawer-essay-cta">Read Mohammed's Essay &rarr;</span>
+          </a>
+        `
+      )
+      .join('');
+
   drawerBody.innerHTML = `
     <div>
       <h3 class="drawer-title">${escapeHtml(node.title)}</h3>
@@ -189,6 +216,17 @@ function openDrawer(node) {
       <h4>Core Principle</h4>
       <p>${escapeHtml(node.principle)}</p>
     </div>
+
+    ${
+      relatedEssays.length > 0
+        ? `
+      <div class="drawer-block">
+        <h4>Published Essays by Mohammed KM (${relatedEssays.length})</h4>
+        <div class="drawer-essays-list">${renderEssayList(relatedEssays)}</div>
+      </div>
+    `
+        : ''
+    }
 
     <div class="drawer-block">
       <h4>Source Book / Research Theme</h4>
@@ -253,6 +291,36 @@ document.addEventListener('keydown', (e) => {
     closeDrawer();
   }
 });
+
+// Load Published Essays from public/data/articles.json and initialize Published Essays Index
+const essaysRoot = document.getElementById('essays-root');
+loadEssays()
+  .then((loaded) => {
+    publishedEssays = loaded;
+    if (statEssays) statEssays.textContent = String(publishedEssays.length);
+    if (graph.selectedNode) {
+      openDrawer(graph.selectedNode);
+    }
+    if (essaysRoot) {
+      initEssaysIndex(essaysRoot, publishedEssays, nodeMap, (nodeId) => {
+        bookBanner.hidden = true;
+        graph.clearBookHighlight();
+        graph.setDomainFilter('all');
+        searchInput.value = '';
+        graph.setSearchQuery('');
+        renderDomainFilters('all');
+        searchCount.textContent = `${NODES.length} nodes`;
+        graph.focusNode(nodeId);
+        document.getElementById('observatory').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  })
+  .catch(() => {
+    if (essaysRoot) {
+      essaysRoot.innerHTML =
+        '<div class="essays-empty">Unable to load published essays index from data/articles.json.</div>';
+    }
+  });
 
 // Initialize 4-Lens Stress-Tester
 initStressTester(document.getElementById('stress-tester-root'));
