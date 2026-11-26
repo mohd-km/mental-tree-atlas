@@ -1,0 +1,15 @@
+{
+  "name": "mental-tree-atlas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mental Tree & Deep Research Atlas by Mohammed KM — Interactive Knowledge Graph, 4-Lens First-Principles Stress-Tester, and Canonical Bookshelf.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

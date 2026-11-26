@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mental Tree &amp; Deep Research Atlas — Mohammed KM</title>
+    <meta
+      name="description"
+      content="An interactive dark-editorial observatory mapping 48 cross-domain mental models, a deterministic 4-lens first-principles stress-tester, and a 17-volume canonical bookshelf by Mohammed KM."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Caudex:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="#top" class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">
+            <span class="brand-title">Mental Tree &amp; Deep Research Atlas</span>
+            <span class="brand-sub">Mohammed KM &middot; Observatory Edition</span>
+          </span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="#observatory">Knowledge Graph</a>
+          <a href="#stress-tester">4-Lens Stress-Tester</a>
+          <a href="#bookshelf">Canonical Bookshelf</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- Editorial Hero -->
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">First-Principles Synthesis &middot; Public Research Observatory</p>
+            <h1>A living map of how systems work, break, and compound.</h1>
+            <p class="hero-lead">
+              Built by Mohammed KM around a single operating principle: <em>learn how things work, then build things that work.</em>
+              Explore 48 interconnected mental models across six disciplines, stress-test any venture thesis through four deterministic lenses, and trace ideas back to the 17 foundational texts behind them.
+            </p>
+            <div class="hero-actions">
+              <a href="#observatory" class="btn-primary">Enter the Knowledge Graph</a>
+              <a href="#stress-tester" class="btn-ghost">Open 4-Lens Stress-Tester</a>
+            </div>
+          </div>
+
+          <aside class="hero-telemetry" aria-label="Atlas summary metrics">
+            <div class="metric-card">
+              <span class="metric-value" id="stat-nodes">48</span>
+              <span class="metric-label">Curated Mental Models</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-value" id="stat-bridges">55+</span>
+              <span class="metric-label">Cross-Domain Bridges</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-value">04</span>
+              <span class="metric-label">First-Principles Lenses</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-value">17</span>
+              <span class="metric-label">Foundational Volumes</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Section 1: Interactive Force-Directed Knowledge Graph -->
+      <section id="observatory" class="section observatory-section">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">01 &middot; Force-Directed Knowledge Graph</p>
+              <h2>Cross-Domain Concept Observatory</h2>
+            </div>
+            <p class="section-desc">
+              Hover any node to illuminate its cross-domain bridges. Drag to explore constellations, filter by domain, search instantaneously, or click any node to open its full concept dossier.
+            </p>
+          </div>
+
+          <div class="graph-toolbar">
+            <div class="domain-filters" id="domain-filters" role="group" aria-label="Filter graph by domain"></div>
+            <div class="graph-search-wrap">
+              <svg class="search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5" />
+                <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+              <input
+                type="search"
+                id="graph-search"
+                class="graph-search"
+                placeholder="Search concepts, thinkers, or principles (press /)"
+                autocomplete="off"
+                aria-label="Search knowledge graph nodes"
+              />
+              <span class="search-count" id="search-count">48 nodes</span>
+            </div>
+          </div>
+
+          <div class="active-book-banner" id="active-book-banner" hidden>
+            <span id="active-book-text"></span>
+            <button type="button" class="btn-mini" id="clear-book-filter">Clear Volume Filter</button>
+          </div>
+
+          <div class="observatory-stage" id="observatory-stage">
+            <canvas id="graph-canvas" aria-label="Interactive force-directed knowledge graph"></canvas>
+
+            <!-- Floating Hover Tooltip -->
+            <div class="graph-tooltip" id="graph-tooltip" hidden></div>
+
+            <!-- Canvas HUD Controls -->
+            <div class="graph-hud-bottom">
+              <div class="hud-toggles">
+                <button type="button" class="hud-btn" id="toggle-cross-only" aria-pressed="false">
+                  Cross-Domain Bridges Only
+                </button>
+                <button type="button" class="hud-btn" id="toggle-labels" aria-pressed="false">
+                  Show All Labels
+                </button>
+              </div>
+              <div class="hud-zoom">
+                <button type="button" class="hud-icon-btn" id="zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
+                <button type="button" class="hud-icon-btn" id="zoom-out" title="Zoom out" aria-label="Zoom out">&minus;</button>
+                <button type="button" class="hud-btn" id="zoom-reset">Reset View</button>
+              </div>
+            </div>
+
+            <!-- Slide-over Concept Drawer -->
+            <aside class="concept-drawer" id="concept-drawer" aria-hidden="true" aria-label="Concept details">
+              <div class="drawer-header">
+                <div class="drawer-meta-row">
+                  <span class="drawer-domain-badge" id="drawer-domain"></span>
+                  <span class="drawer-code" id="drawer-code"></span>
+                </div>
+                <button type="button" class="drawer-close" id="drawer-close" aria-label="Close concept drawer">&times;</button>
+              </div>
+              <div class="drawer-body" id="drawer-body"></div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Interactive 4-Lens First-Principles Stress-Tester -->
+      <section id="stress-tester" class="section stress-section">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">02 &middot; Deterministic Diagnostic Framework</p>
+              <h2>4-Lens First-Principles Stress-Tester</h2>
+            </div>
+            <p class="section-desc">
+              Select a sample venture thesis or enter your own claim. Runs 100% locally in your browser with zero external API keys—evaluating epistemological rigor, tail risk, deletion discipline, and system leverage points.
+            </p>
+          </div>
+
+          <div id="stress-tester-root"></div>
+        </div>
+      </section>
+
+      <!-- Section 3: Canonical Bookshelf Strip -->
+      <section id="bookshelf" class="section bookshelf-section">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">03 &middot; Foundational Reading Canon</p>
+              <h2>Canonical Bookshelf Strip</h2>
+            </div>
+            <p class="section-desc">
+              Seventeen core volumes spanning epistemology, physics, computing, biology, markets, systems dynamics, and character craft—distilled to their operative one-line mental models.
+            </p>
+          </div>
+
+          <div id="bookshelf-root"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <p class="footer-title">Mental Tree &amp; Deep Research Atlas</p>
+          <p class="footer-note">
+            Curated by Mohammed KM. Static client-side publication — zero tracking, zero external API dependencies.
+          </p>
+        </div>
+        <div class="footer-links">
+          <a href="#observatory">Observatory</a>
+          <a href="#stress-tester">4-Lens Rubric</a>
+          <a href="#bookshelf">17 Books</a>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
