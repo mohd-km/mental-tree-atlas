@@ -236,10 +236,9 @@ export class ObservatoryGraph {
       title,
       domain: dom.id,
       aphorism: thesis,
-      principle: 'Temporary custom thesis node dropped live onto the graph and wired client-side by keyword & domain overlap.',
-      source: 'Your live custom thesis (temporary, client-side only)',
-      bookId: null,
-      application: 'Drag this node to test layout tension, inspect its auto-matched bridges, or pick it in the Shortest-Path Concept Bridge.',
+      principle: 'Your idea was linked to the ideas on the map that share the most words with it.',
+      source: 'Your own idea, kept only in this browser tab',
+      application: 'Drag it around, open its links below, or pick it under "Connect two ideas" to see how far it reaches.',
       tags: ['custom', 'thesis'],
       weight: 1.35,
       color: '#1d4ed8',
@@ -263,7 +262,7 @@ export class ObservatoryGraph {
       this.links.push({
         source: customNode,
         target,
-        relation: 'thesis match',
+        relation: 'matches your idea',
         isCross: customNode.domain !== target.domain,
         isCustomLink: true
       });
@@ -356,7 +355,7 @@ export class ObservatoryGraph {
     }
     if (this.searchQuery) {
       const q = this.searchQuery;
-      const hay = `${node.title} ${node.code} ${node.source} ${node.aphorism} ${node.principle} ${node.tags.join(' ')}`.toLowerCase();
+      const hay = `${node.title} ${node.aphorism} ${node.principle} ${node.tags.join(' ')}`.toLowerCase();
       return hay.includes(q);
     }
     return true;
@@ -892,13 +891,15 @@ export class ObservatoryGraph {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         const labelY = n.y + r + 5;
+        // Canvas labels drop the bracketed term to stay short; the full title shows on hover and in the drawer.
+        const canvasLabel = String(n.title).replace(/\s*\([^)]*\)\s*$/, '');
 
         ctx.lineWidth = 3.2 / Math.sqrt(this.cam.scale);
         ctx.strokeStyle = 'rgba(250, 250, 249, 0.94)';
-        ctx.strokeText(n.title, n.x, labelY);
+        ctx.strokeText(canvasLabel, n.x, labelY);
 
         ctx.fillStyle = isOnBridge || n.isCustom ? '#1d4ed8' : isFocused || isSelected ? '#111111' : '#292524';
-        ctx.fillText(n.title, n.x, labelY);
+        ctx.fillText(canvasLabel, n.x, labelY);
       }
 
       ctx.globalAlpha = 1;

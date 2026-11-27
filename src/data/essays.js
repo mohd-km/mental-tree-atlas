@@ -1,171 +1,171 @@
 import { DOMAINS } from './domains.js';
 
-// Curated mapping from mohammed-km.in/post/<slug> to Atlas domains and Knowledge Graph nodes.
+// Maps each essay on mohammed-km.in/post/<slug> to the graph ideas it covers.
 const ESSAY_METADATA = {
   'neuromorphic-computing': {
     title: 'Neuromorphic Computing',
     domain: 'ai-computing',
-    nodeIds: ['accelerating-returns', 'pattern-recognition-mind', 'cloud-neocortex']
+    nodeIds: ['pattern-recognition-mind', 'memory-wall']
   },
   'tools-of-coevolution': {
     title: 'Tools of Coevolution',
     domain: 'biology-longevity',
-    nodeIds: ['bottom-up-evolution', 'biology-as-information', 'combinatorial-innovation']
+    nodeIds: ['bottom-up-evolution', 'accelerating-returns']
   },
   'bayesian-intelligence': {
     title: 'Bayesian Intelligence',
     domain: 'systems-epistemology',
-    nodeIds: ['hard-to-vary', 'pattern-recognition-mind', 'judgment-compounding']
+    nodeIds: ['bayesian-updating']
   },
   'computable-vs-cantgotu-worlds': {
     title: 'Computable vs. Cantgotu Worlds',
-    domain: 'systems-epistemology',
-    nodeIds: ['universal-explainers', 'poetic-naturalism', 'strange-loops']
+    domain: 'ai-computing',
+    nodeIds: ['computable-universe', 'quantum-simulation']
   },
   'self-reference-paradox': {
     title: 'Self-Reference Paradox',
     domain: 'ai-computing',
-    nodeIds: ['strange-loops', 'universal-explainers', 'orthogonality-thesis']
+    nodeIds: ['strange-loops']
   },
   'mapping-connectome': {
     title: 'Mapping the Connectome',
     domain: 'biology-longevity',
-    nodeIds: ['pattern-recognition-mind', 'biology-as-information', 'sleep-glymphatic']
+    nodeIds: ['connectome-map']
   },
   'reward-prediction-error': {
     title: 'Reward Prediction Error',
     domain: 'biology-longevity',
-    nodeIds: ['dopamine-homeostasis', 'attention-architecture', 'emotional-regulation']
+    nodeIds: ['dopamine-homeostasis']
   },
   'fractal-theory': {
     title: 'Fractal Theory',
     domain: 'systems-epistemology',
-    nodeIds: ['fractal-scale-invariance', 'wild-randomness', 'extremistan-fat-tails']
+    nodeIds: ['fractal-scale-invariance']
   },
   'cryptographic-history': {
     title: 'Cryptographic History',
-    domain: 'ai-computing',
-    nodeIds: ['permissionless-leverage', 'telemetry-closed-loop', 'civilizational-cycles']
+    domain: 'economics-strategy',
+    nodeIds: ['blockchain-trust']
   },
   'memetic-evolution': {
     title: 'Memetic Evolution',
-    domain: 'biology-longevity',
-    nodeIds: ['bottom-up-evolution', 'civilizational-cycles', 'combinatorial-innovation']
+    domain: 'systems-epistemology',
+    nodeIds: ['memetic-evolution', 'bottom-up-evolution']
   },
   'genome-vs-epigenome': {
     title: 'Genome vs. Epigenome',
     domain: 'biology-longevity',
-    nodeIds: ['biology-as-information', 'metabolic-flexibility', 'medicine-3-0']
+    nodeIds: ['epigenome-switches', 'biological-age']
   },
   'science-of-longevity': {
     title: 'Science of Longevity',
     domain: 'biology-longevity',
-    nodeIds: ['medicine-3-0', 'centenarian-decathlon', 'metabolic-flexibility', 'apob-prevention']
+    nodeIds: ['medicine-3-0', 'biological-age', 'centenarian-decathlon', 'metabolic-flexibility']
   },
   'customer-trap': {
     title: 'Customer Trap',
     domain: 'economics-strategy',
-    nodeIds: ['combinatorial-innovation', 'unit-economics-diligence', 'system-leverage-points']
+    nodeIds: ['customer-trap']
   },
   'tale-of-two-commercials': {
     title: 'Tale of Two Commercials',
     domain: 'economics-strategy',
-    nodeIds: ['specific-knowledge', 'radical-simplification', 'deliberate-ai-simplicity']
+    nodeIds: ['brand-story']
   },
   'accelerated-vaccine-development': {
     title: 'Accelerated Vaccine Development',
-    domain: 'biology-longevity',
-    nodeIds: ['biology-as-information', 'accelerating-returns', 'medicine-3-0']
+    domain: 'ai-computing',
+    nodeIds: ['ai-protein-folding']
   },
   'ecstasis-economy': {
     title: 'Ecstasis Economy',
     domain: 'character-craft',
-    nodeIds: ['attention-architecture', 'dopamine-homeostasis', 'internal-self-mastery']
+    nodeIds: ['flow-state']
   },
   'hooked-model': {
     title: 'Hooked Model',
     domain: 'economics-strategy',
-    nodeIds: ['dopamine-homeostasis', 'deliberate-ai-simplicity', 'feedback-delays']
+    nodeIds: ['habit-loop', 'dopamine-homeostasis']
   },
   'dissecting-genetic-code': {
     title: 'Dissecting the Genetic Code',
     domain: 'biology-longevity',
-    nodeIds: ['biology-as-information', 'universal-explainers', 'poetic-naturalism']
+    nodeIds: ['biology-as-information']
   },
   'quantum-interference-manipulation': {
     title: 'Quantum Interference Manipulation',
     domain: 'physics-energy',
-    nodeIds: ['quantum-simulation', 'emergent-spacetime', 'asymptotic-limits']
+    nodeIds: ['quantum-interference', 'quantum-simulation']
   },
   'evolutionary-epistemology': {
     title: 'Evolutionary Epistemology',
     domain: 'systems-epistemology',
-    nodeIds: ['hard-to-vary', 'principle-of-optimism', 'universal-explainers']
+    nodeIds: ['hard-to-vary']
   },
   'future-of-energy-storage': {
     title: 'Future of Energy Storage',
     domain: 'physics-energy',
-    nodeIds: ['kardashev-energy', 'electrification-tco', 'first-principles-physics', 'asymptotic-limits']
+    nodeIds: ['electrification-tco']
   },
   'space-time-continuum': {
     title: 'Space-Time Continuum',
     domain: 'physics-energy',
-    nodeIds: ['emergent-spacetime', 'poetic-naturalism', 'cosmic-humility']
+    nodeIds: ['curved-spacetime']
   },
   'interesting-blockchain-applications': {
     title: 'Interesting Blockchain Applications',
     domain: 'economics-strategy',
-    nodeIds: ['permissionless-leverage', 'skin-in-the-game', 'combinatorial-innovation']
+    nodeIds: ['blockchain-trust']
   },
   'peak-end-rule': {
     title: 'Peak-End Rule Error',
     domain: 'character-craft',
-    nodeIds: ['emotional-regulation', 'judgment-compounding', 'internal-self-mastery']
+    nodeIds: ['peak-end']
   },
   'dual-mental-systems': {
     title: 'Dual Mental Systems',
-    domain: 'character-craft',
-    nodeIds: ['emotional-regulation', 'judgment-compounding', 'internal-self-mastery']
+    domain: 'systems-epistemology',
+    nodeIds: ['dual-systems']
   },
   'perils-of-iatrogenics': {
     title: 'Perils of Iatrogenics',
     domain: 'economics-strategy',
-    nodeIds: ['antifragile-convexity', 'via-negativa', 'skin-in-the-game', 'medicine-3-0']
+    nodeIds: ['antifragile-convexity', 'via-negativa']
   },
   'rigid-theorization-problem': {
     title: 'Rigid Theorization Problem',
     domain: 'systems-epistemology',
-    nodeIds: ['system-leverage-points', 'feedback-delays', 'extremistan-fat-tails', 'wild-randomness']
+    nodeIds: ['extremistan-fat-tails']
   },
   'organism-or-algorithms': {
     title: 'Organism or Algorithms?',
     domain: 'ai-computing',
-    nodeIds: ['pattern-recognition-mind', 'biology-as-information', 'orthogonality-thesis', 'instrumental-convergence']
+    nodeIds: ['organisms-as-algorithms']
   },
   'world-of-intersubjective-realities': {
     title: 'World of Intersubjective Realities',
     domain: 'systems-epistemology',
-    nodeIds: ['civilizational-cycles', 'poetic-naturalism', 'character-invariants']
+    nodeIds: ['shared-stories']
   },
   'a-lesson-from-scientific-revolution': {
     title: 'A Lesson from the Scientific Revolution',
     domain: 'systems-epistemology',
-    nodeIds: ['hard-to-vary', 'principle-of-optimism', 'civilizational-cycles', 'first-principles-physics']
+    nodeIds: ['discovery-of-ignorance', 'accelerating-returns']
   },
   'prisoners-to-old-brain': {
     title: 'Prisoners to Old Brain',
     domain: 'character-craft',
-    nodeIds: ['dopamine-homeostasis', 'emotional-regulation', 'attention-architecture', 'internal-self-mastery']
+    nodeIds: ['emotional-regulation']
   },
   'navigating-sunk-cost-effect': {
     title: 'Navigating the Sunk Cost Effect',
     domain: 'economics-strategy',
-    nodeIds: ['judgment-compounding', 'via-negativa', 'unit-economics-diligence', 'five-step-algorithm']
+    nodeIds: ['sunk-cost']
   },
   'simplicity-is-the-ultimate-sophistication': {
     title: 'Simplicity Is the Ultimate Sophistication',
     domain: 'character-craft',
-    nodeIds: ['radical-simplification', 'five-step-algorithm', 'deliberate-ai-simplicity', 'emergent-levels']
+    nodeIds: ['radical-simplification']
   }
 };
 

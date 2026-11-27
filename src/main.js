@@ -1,11 +1,9 @@
 import { DOMAINS, DOMAIN_MAP } from './data/domains.js';
 import { NODES, LINKS } from './data/knowledgeGraph.js';
-import { BOOKSHELF } from './data/bookshelf.js';
 import { loadEssays, getEssaysForNode } from './data/essays.js';
 import { ObservatoryGraph } from './components/graphEngine.js';
 import { initEssaysIndex } from './components/essaysUI.js';
 import { initStressTester } from './components/stressTesterUI.js';
-import { initBookshelf } from './components/bookshelfUI.js';
 
 // Update hero stats dynamically from real data
 const statNodes = document.getElementById('stat-nodes');
@@ -21,6 +19,9 @@ const crossBridgeCount = LINKS.filter(
 ).length;
 if (statNodes) statNodes.textContent = String(NODES.length);
 if (statBridges) statBridges.textContent = String(crossBridgeCount);
+document.querySelectorAll('.js-node-count').forEach((el) => {
+  el.textContent = String(NODES.length);
+});
 
 let publishedEssays = [];
 let activeCustomThesis = null;
@@ -36,9 +37,6 @@ const drawerClose = document.getElementById('drawer-close');
 const filtersWrap = document.getElementById('domain-filters');
 const searchInput = document.getElementById('graph-search');
 const searchCount = document.getElementById('search-count');
-const bookBanner = document.getElementById('active-book-banner');
-const bookBannerText = document.getElementById('active-book-text');
-const clearBookBtn = document.getElementById('clear-book-filter');
 
 // Bridge & Thesis Lab DOM elements
 const bridgeStartEl = document.getElementById('bridge-start');
@@ -66,15 +64,15 @@ const graph = new ObservatoryGraph(canvas, NODES, LINKS, {
       nodeEssays.length > 0
         ? ` &middot; ${nodeEssays.length} ${nodeEssays.length === 1 ? 'essay' : 'essays'}`
         : '';
+    const linkWord = node.degree === 1 ? 'link' : 'links';
     tooltip.innerHTML = `
       <div class="tt-top">
         <span style="color: ${node.isCustom ? '#1d4ed8' : dom.color}">${
-      node.isCustom ? 'Custom Thesis' : dom.name
+      node.isCustom ? 'Your idea' : dom.name
     }</span>
-        <span>${node.code}</span>
       </div>
       <div class="tt-title">${escapeHtml(node.title)}</div>
-      <div class="tt-meta">${node.degree} links &middot; ${node.crossDegree} cross-domain${essayMeta}</div>
+      <div class="tt-meta">${node.degree} ${linkWord}, ${node.crossDegree} to other topics${essayMeta} &middot; click to read</div>
     `;
     tooltip.hidden = false;
 
@@ -98,7 +96,7 @@ const graph = new ObservatoryGraph(canvas, NODES, LINKS, {
 for (const d of DOMAINS) {
   const opt = document.createElement('option');
   opt.value = d.id;
-  opt.textContent = `Domain: ${d.short}`;
+  opt.textContent = `Topic: ${d.name}`;
   thesisDomainSelect.appendChild(opt);
 }
 
@@ -111,7 +109,7 @@ function populateBridgeSelects(preserveSelection = true) {
     let html = '';
     if (activeCustomThesis) {
       html += `
-        <optgroup label="Custom Thesis (Live)">
+        <optgroup label="Your idea">
           <option value="custom-thesis">${escapeHtml(activeCustomThesis.title)}</option>
         </optgroup>
       `;
@@ -147,7 +145,6 @@ function runConceptBridge(startId, endId) {
   bridgeStartEl.value = startId;
   bridgeEndEl.value = endId;
 
-  bookBanner.hidden = true;
   searchInput.value = '';
   renderDomainFilters('all');
   closeDrawer();
@@ -156,20 +153,19 @@ function runConceptBridge(startId, endId) {
   if (!path) {
     bridgeResultEl.hidden = false;
     bridgeClearBtn.hidden = false;
-    bridgeResultEl.innerHTML = `<p class="bridge-empty">No path found between these two concepts.</p>`;
+    bridgeResultEl.innerHTML = `<p class="bridge-empty">These two ideas are not connected yet. Try another pair.</p>`;
     return;
   }
 
   bridgeClearBtn.hidden = false;
   bridgeResultEl.hidden = false;
-  searchCount.textContent = `${path.nodeIds.length} path nodes`;
+  searchCount.textContent = `${path.nodeIds.length} in chain`;
 
-  // Collect matching essays & books touched along the shortest path
+  // Collect essays that cover any idea along the chain
   const pathNodeSet = path.nodeSet;
   const touchedEssays = publishedEssays.filter((e) =>
     e.nodeIds.some((id) => pathNodeSet.has(id))
   );
-  const touchedBooks = BOOKSHELF.filter((b) => b.nodeIds.some((id) => pathNodeSet.has(id)));
 
   const hopsHtml = path.nodeIds
     .map((id, idx) => {
@@ -197,7 +193,7 @@ function runConceptBridge(startId, endId) {
     touchedEssays.length > 0
       ? `
         <div class="bridge-artifacts-group">
-          <span class="bridge-artifacts-label">Essays on this bridge (${touchedEssays.length}):</span>
+          <span class="bridge-artifacts-label">Essays along this chain (${touchedEssays.length}):</span>
           <div class="bridge-artifacts-chips">
             ${touchedEssays
               .slice(0, 6)
@@ -213,45 +209,18 @@ function runConceptBridge(startId, endId) {
       `
       : '';
 
-  const booksHtml =
-    touchedBooks.length > 0
-      ? `
-        <div class="bridge-artifacts-group">
-          <span class="bridge-artifacts-label">Books on this bridge (${touchedBooks.length}):</span>
-          <div class="bridge-artifacts-chips">
-            ${touchedBooks
-              .slice(0, 5)
-              .map(
-                (b) =>
-                  `<button type="button" class="bridge-artifact-btn" data-bridge-book="${b.id}">${escapeHtml(
-                    b.title
-                  )}</button>`
-              )
-              .join('')}
-          </div>
-        </div>
-      `
-      : '';
-
   bridgeResultEl.innerHTML = `
     <div class="bridge-summary-line">
-      <strong>${path.edges.length} ${path.edges.length === 1 ? 'hop' : 'hops'}</strong>
-      across ${new Set(path.nodeIds.map((id) => graph.nodeMap.get(id)?.domain)).size} domains
+      <strong>${path.edges.length} ${path.edges.length === 1 ? 'step' : 'steps'}</strong>
+      across ${new Set(path.nodeIds.map((id) => graph.nodeMap.get(id)?.domain)).size} topics
     </div>
     <div class="bridge-chain">${hopsHtml}</div>
-    ${essaysHtml || booksHtml ? `<div class="bridge-artifacts">${essaysHtml}${booksHtml}</div>` : ''}
+    ${essaysHtml ? `<div class="bridge-artifacts">${essaysHtml}</div>` : ''}
   `;
 
   bridgeResultEl.querySelectorAll('[data-bridge-focus]').forEach((btn) => {
     btn.addEventListener('click', () => {
       graph.focusNode(btn.dataset.bridgeFocus);
-    });
-  });
-
-  bridgeResultEl.querySelectorAll('[data-bridge-book]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const book = BOOKSHELF.find((b) => b.id === btn.dataset.bridgeBook);
-      if (book) highlightBook(book);
     });
   });
 }
@@ -261,7 +230,7 @@ function clearConceptBridge(refit = true) {
   bridgeResultEl.hidden = true;
   bridgeResultEl.innerHTML = '';
   bridgeClearBtn.hidden = true;
-  searchCount.textContent = `${graph.nodes.length} nodes`;
+  searchCount.textContent = `${graph.nodes.length} ideas`;
   if (refit) graph.fitToView(true);
 }
 
@@ -297,7 +266,7 @@ function matchThesisToNodes(text, domainOverride = 'auto') {
     let score = 0;
     const titleL = n.title.toLowerCase();
     const tagsL = n.tags.join(' ').toLowerCase();
-    const bodyL = `${n.aphorism} ${n.principle} ${n.application} ${n.source}`.toLowerCase();
+    const bodyL = `${n.aphorism} ${n.principle} ${n.application}`.toLowerCase();
 
     for (const tok of tokens) {
       if (titleL.includes(tok)) score += 6;
@@ -338,7 +307,6 @@ function dropCustomThesis({ title, thesis, domainOverride = 'auto' }) {
 
   const { domain, linkedNodeIds, linkedNodes } = matchThesisToNodes(cleanThesis, domainOverride);
   clearConceptBridge(false);
-  bookBanner.hidden = true;
   searchInput.value = '';
   renderDomainFilters('all');
 
@@ -354,10 +322,10 @@ function dropCustomThesis({ title, thesis, domainOverride = 'auto' }) {
   bridgeStartEl.value = 'custom-thesis';
   thesisRemoveBtn.hidden = false;
   thesisStatusEl.hidden = false;
-  searchCount.textContent = `${graph.nodes.length} nodes`;
+  searchCount.textContent = `${graph.nodes.length} ideas`;
 
   thesisStatusEl.innerHTML = `
-    <span class="thesis-status-label">Linked to:</span>
+    <span class="thesis-status-label">Your idea links to:</span>
     ${linkedNodes
       .map(
         (n) =>
@@ -391,7 +359,7 @@ thesisRemoveBtn.addEventListener('click', () => {
   thesisStatusEl.hidden = true;
   thesisStatusEl.innerHTML = '';
   populateBridgeSelects(false);
-  searchCount.textContent = `${graph.nodes.length} nodes`;
+  searchCount.textContent = `${graph.nodes.length} ideas`;
 });
 
 // Build Domain Filter Pills
@@ -416,14 +384,13 @@ function renderDomainFilters(activeId = 'all') {
   filtersWrap.querySelectorAll('[data-dom]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const domId = btn.dataset.dom;
-      bookBanner.hidden = true;
-      clearConceptBridge(false);
+          clearConceptBridge(false);
       searchInput.value = '';
       graph.setSearchQuery('');
       graph.setDomainFilter(domId);
       renderDomainFilters(domId);
       const visible = domId === 'all' ? graph.nodes.length : counts[domId] || 0;
-      searchCount.textContent = `${visible} nodes`;
+      searchCount.textContent = `${visible} ideas`;
     });
   });
 }
@@ -432,7 +399,6 @@ renderDomainFilters('all');
 
 // Instant Search
 searchInput.addEventListener('input', () => {
-  bookBanner.hidden = true;
   clearConceptBridge(false);
   const matched = graph.setSearchQuery(searchInput.value);
   searchCount.textContent = `${matched.length} ${matched.length === 1 ? 'match' : 'matches'}`;
@@ -465,40 +431,21 @@ labelsBtn.addEventListener('click', () => {
 document.getElementById('zoom-in').addEventListener('click', () => graph.zoomBy(1.24));
 document.getElementById('zoom-out').addEventListener('click', () => graph.zoomBy(0.8));
 document.getElementById('zoom-reset').addEventListener('click', () => {
-  bookBanner.hidden = true;
   clearConceptBridge(false);
   graph.clearBookHighlight();
   graph.setDomainFilter('all');
   searchInput.value = '';
   graph.setSearchQuery('');
   renderDomainFilters('all');
-  searchCount.textContent = `${graph.nodes.length} nodes`;
+  searchCount.textContent = `${graph.nodes.length} ideas`;
 });
-
-clearBookBtn.addEventListener('click', () => {
-  bookBanner.hidden = true;
-  graph.clearBookHighlight();
-  graph.fitToView(true);
-  searchCount.textContent = `${graph.nodes.length} nodes`;
-});
-
-function highlightBook(book) {
-  clearConceptBridge(false);
-  renderDomainFilters('all');
-  searchInput.value = '';
-  bookBannerText.textContent = `Highlighting ${book.nodeIds.length} mental models from "${book.title}" by ${book.author}.`;
-  bookBanner.hidden = false;
-  searchCount.textContent = `${book.nodeIds.length} volume nodes`;
-  graph.highlightBookNodes(book.nodeIds);
-  document.getElementById('observatory').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 
 // Concept Drawer
 function openDrawer(node) {
   const dom = DOMAIN_MAP[node.domain];
-  drawerDomain.textContent = node.isCustom ? 'Custom Thesis' : dom.name;
+  drawerDomain.textContent = node.isCustom ? 'Your idea' : dom.name;
   drawerDomain.style.color = node.isCustom ? '#1d4ed8' : dom.color;
-  drawerCode.textContent = node.code;
+  drawerCode.textContent = '';
 
   const connected = graph.getAllLinksForNode(node.id);
   const crossLinks = connected.filter((c) => c.isCross);
@@ -544,10 +491,10 @@ function openDrawer(node) {
     <p class="drawer-aphorism">${escapeHtml(node.aphorism)}</p>
 
     <div class="drawer-quick-actions">
-      <button type="button" class="btn-mini" id="drawer-bridge-from">Bridge from here &rarr;</button>
+      <button type="button" class="btn-mini" id="drawer-bridge-from">Connect from here &rarr;</button>
       ${
         node.isCustom
-          ? `<button type="button" class="btn-mini" id="drawer-remove-custom">Remove Thesis</button>`
+          ? `<button type="button" class="btn-mini" id="drawer-remove-custom">Remove my idea</button>`
           : ''
       }
     </div>
@@ -556,18 +503,18 @@ function openDrawer(node) {
       relatedEssays.length > 0
         ? `
       <div class="drawer-block">
-        <h4>Published Essays (${relatedEssays.length})</h4>
+        <h4>Read the essay (${relatedEssays.length})</h4>
         <div class="drawer-essays-list">${renderEssayList(relatedEssays)}</div>
       </div>
     `
         : ''
     }
 
-    <details class="drawer-details">
-      <summary>Core Principle &amp; Application</summary>
+    <details class="drawer-details" open>
+      <summary>The idea in a bit more detail</summary>
       <div class="drawer-details-body">
         <p>${escapeHtml(node.principle)}</p>
-        <p><strong>Application:</strong> ${escapeHtml(node.application)}</p>
+        <p><strong>Try it:</strong> ${escapeHtml(node.application)}</p>
         <div class="drawer-source">${escapeHtml(node.source)}</div>
       </div>
     </details>
@@ -576,7 +523,7 @@ function openDrawer(node) {
       crossLinks.length > 0
         ? `
       <div class="drawer-block">
-        <h4>Cross-Domain Bridges (${crossLinks.length})</h4>
+        <h4>Links to other topics (${crossLinks.length})</h4>
         <div class="drawer-links-list">${renderLinkList(crossLinks)}</div>
       </div>
     `
@@ -587,7 +534,7 @@ function openDrawer(node) {
       sameLinks.length > 0
         ? `
       <div class="drawer-block">
-        <h4>Within ${escapeHtml(dom.short)} (${sameLinks.length})</h4>
+        <h4>More in ${escapeHtml(dom.name)} (${sameLinks.length})</h4>
         <div class="drawer-links-list">${renderLinkList(sameLinks)}</div>
       </div>
     `
@@ -655,19 +602,20 @@ loadEssays()
   .then((loaded) => {
     publishedEssays = loaded;
     if (statEssays) statEssays.textContent = String(publishedEssays.length);
+    const essayCountCopy = document.getElementById('essay-count-copy');
+    if (essayCountCopy) essayCountCopy.textContent = String(publishedEssays.length);
     if (graph.selectedNode) {
       openDrawer(graph.selectedNode);
     }
     if (essaysRoot) {
       initEssaysIndex(essaysRoot, publishedEssays, nodeMap, (nodeId) => {
-        bookBanner.hidden = true;
-        clearConceptBridge(false);
+              clearConceptBridge(false);
         graph.clearBookHighlight();
         graph.setDomainFilter('all');
         searchInput.value = '';
         graph.setSearchQuery('');
         renderDomainFilters('all');
-        searchCount.textContent = `${graph.nodes.length} nodes`;
+        searchCount.textContent = `${graph.nodes.length} ideas`;
         graph.focusNode(nodeId);
         document.getElementById('observatory').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
@@ -676,20 +624,15 @@ loadEssays()
   .catch(() => {
     if (essaysRoot) {
       essaysRoot.innerHTML =
-        '<div class="essays-empty">Unable to load published essays index from data/articles.json.</div>';
+        '<div class="essays-empty">The essay list could not load. Please refresh the page.</div>';
     }
   });
 
-// Initialize 4-Lens Stress-Tester (wired to drop thesis directly onto the graph)
+// Idea check (can add the checked idea straight onto the map)
 initStressTester(document.getElementById('stress-tester-root'), ({ title, thesis }) => {
   thesisInput.value = thesis;
   dropCustomThesis({ title, thesis, domainOverride: 'auto' });
   document.getElementById('observatory').scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
-
-// Initialize Compact Canonical Bookshelf
-initBookshelf(document.getElementById('bookshelf-root'), (book) => {
-  highlightBook(book);
 });
 
 // Header nav active state

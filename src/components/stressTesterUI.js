@@ -40,12 +40,8 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
     const cx = 140;
     const cy = 118;
     const maxR = 76;
-    const axes = [
-      { id: 'deutsch', label: 'Deutsch', angle: -Math.PI / 2, color: '#0369a1' },
-      { id: 'taleb', label: 'Taleb', angle: 0, color: '#c2410c' },
-      { id: 'musk', label: 'Musk', angle: Math.PI / 2, color: '#b45309' },
-      { id: 'meadows', label: 'Meadows', angle: Math.PI, color: '#0f766e' }
-    ];
+    const angles = { deutsch: -Math.PI / 2, taleb: 0, musk: Math.PI / 2, meadows: Math.PI };
+    const axes = LENS_META.map((m) => ({ id: m.id, label: m.short, angle: angles[m.id], color: m.color }));
 
     const rings = [0.25, 0.5, 0.75, 1]
       .map((f) => {
@@ -103,7 +99,7 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
       .join('');
 
     return `
-      <svg viewBox="0 0 280 236" class="radar-svg" role="img" aria-label="Four-lens diagnostic score radar">
+      <svg viewBox="-24 0 328 236" class="radar-svg" role="img" aria-label="Score chart: the further out each point, the better the idea did on that question">
         ${rings}
         ${spokes}
         <polygon points="${dataPts}" fill="rgba(29, 78, 216, 0.14)" stroke="#1d4ed8" stroke-width="2" />
@@ -117,19 +113,19 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
     const { lensScores, total } = computeScores();
     const verdict = computeVerdict(total);
     const lines = [
-      `# 4-Lens First-Principles Stress Test`,
-      `**Thesis:** ${currentThesis}`,
-      `**Composite Score:** ${total}/100 — ${verdict.band}`,
+      `# Idea check: four questions`,
+      `**Idea:** ${currentThesis}`,
+      `**Score:** ${total}/100 (${verdict.band})`,
       '',
       ...LENS_META.flatMap((meta) => {
         const item = currentAnalysis[meta.id];
         const sc = lensScores[meta.id];
         return [
-          `## ${meta.thinker} — ${meta.framework} (${sc.score}/25)`,
-          `- Assessment: ${item.summary}`,
-          item.leverageLevel ? `- Leverage Point: ${item.leverageLevel}` : null,
-          `- Primary Failure Mode: ${item.failureMode}`,
-          `- Action Directive: ${item.directive}`,
+          `## ${meta.title} (${meta.term}): ${sc.score}/25`,
+          `- In short: ${item.summary}`,
+          item.leverageLevel ? `- Where it pushes: ${item.leverageLevel}` : null,
+          `- How it could fail: ${item.failureMode}`,
+          `- What to do next: ${item.directive}`,
           ...item.checks.map((c) => `  - [${c.pass ? 'x' : ' '}] ${c.label}`),
           ''
         ].filter(Boolean);
@@ -144,7 +140,7 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
 
     rootEl.innerHTML = `
       <div class="st-controls">
-        <div class="st-chip-row" role="group" aria-label="Sample startup theses">
+        <div class="st-chip-row" role="group" aria-label="Example ideas">
           ${SAMPLE_THESES.map(
             (s) => `
             <button
@@ -166,10 +162,10 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
               id="st-textarea"
               class="st-text-input"
               value="${escapeHtml(currentThesis)}"
-              placeholder="Enter any startup thesis or claim to audit across 4 lenses..."
-              aria-label="Startup thesis or strategic claim"
+              placeholder="Type any business or project idea to check it..."
+              aria-label="Your idea"
             />
-            <button type="submit" class="btn-primary st-run-btn">Run Audit</button>
+            <button type="submit" class="btn-primary st-run-btn">Check my idea</button>
           </div>
         </form>
       </div>
@@ -193,7 +189,7 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
               const pct = Math.round((sc.score / 25) * 100);
               return `
                 <div class="st-bar-row">
-                  <span class="st-bar-name" style="color: ${m.color}">${m.thinker}</span>
+                  <span class="st-bar-name" style="color: ${m.color}">${m.short}</span>
                   <div class="st-bar-track">
                     <div class="st-bar-fill" style="width: ${pct}%; background: ${m.color}"></div>
                   </div>
@@ -203,8 +199,8 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
             }).join('')}
           </div>
           <div class="st-summary-actions">
-            <button type="button" class="btn-primary" id="st-drop-graph-btn">Drop Thesis onto Graph &uarr;</button>
-            <button type="button" class="btn-ghost" id="st-copy-btn">Copy Markdown Brief</button>
+            <button type="button" class="btn-primary" id="st-drop-graph-btn">Add this idea to the map &uarr;</button>
+            <button type="button" class="btn-ghost" id="st-copy-btn">Copy summary</button>
           </div>
         </div>
       </div>
@@ -217,8 +213,8 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
             <article class="st-lens-card" style="--lens-color: ${meta.color}">
               <header class="st-lens-head">
                 <div>
-                  <span class="st-lens-domain">${meta.domain} &middot; ${meta.framework}</span>
-                  <h3 class="st-lens-title">${meta.thinker}</h3>
+                  <span class="st-lens-domain">${meta.term}</span>
+                  <h3 class="st-lens-title">${meta.title}</h3>
                 </div>
                 <div class="st-lens-score">
                   <span>${sc.score}</span><small>/25</small>
@@ -229,14 +225,14 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
 
               <details class="st-lens-details">
                 <summary class="st-lens-details-toggle">
-                  Rubric &amp; failure modes (${sc.passed}/${sc.total} passed)
+                  Checklist: ${sc.passed} of ${sc.total} ticked (tap to open)
                 </summary>
                 <div class="st-lens-details-body">
                   <p class="st-lens-question">${meta.question}</p>
 
                   ${
                     data.leverageLevel
-                      ? `<div class="st-leverage-pill"><span>Leverage Point</span><strong>${escapeHtml(
+                      ? `<div class="st-leverage-pill"><span>Where it pushes</span><strong>${escapeHtml(
                           data.leverageLevel
                         )}</strong></div>`
                       : ''
@@ -244,11 +240,11 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
 
                   <div class="st-diagnostic-blocks">
                     <div class="st-diag-box is-risk">
-                      <span class="st-diag-label">Failure Mode</span>
+                      <span class="st-diag-label">How it could fail</span>
                       <p>${escapeHtml(data.failureMode)}</p>
                     </div>
                     <div class="st-diag-box is-action">
-                      <span class="st-diag-label">Directive</span>
+                      <span class="st-diag-label">What to do next</span>
                       <p>${escapeHtml(data.directive)}</p>
                     </div>
                   </div>
@@ -345,14 +341,14 @@ export function initStressTester(rootEl, onDropThesisOnGraph) {
       const md = buildMarkdownBrief();
       try {
         await navigator.clipboard.writeText(md);
-        copyBtn.textContent = 'Copied Brief';
+        copyBtn.textContent = 'Copied';
         setTimeout(() => {
-          copyBtn.textContent = 'Copy Markdown Brief';
+          copyBtn.textContent = 'Copy summary';
         }, 1800);
       } catch {
-        copyBtn.textContent = 'Clipboard Restricted';
+        copyBtn.textContent = 'Copy not allowed here';
         setTimeout(() => {
-          copyBtn.textContent = 'Copy Markdown Brief';
+          copyBtn.textContent = 'Copy summary';
         }, 1800);
       }
     });

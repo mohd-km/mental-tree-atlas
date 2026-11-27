@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "Mental Tree & Deep Research Atlas v2 by Mohammed KM — Interactive Knowledge Graph with linked Published Essays, 4-Lens First-Principles Stress-Tester, and Canonical Bookshelf.",
+  "description": "Mental Tree & Idea Atlas by Mohammed KM: an interactive map of ideas from his own essays and notes, with a four-question idea check and his published essays.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

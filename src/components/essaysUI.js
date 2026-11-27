@@ -28,7 +28,7 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
 
     rootEl.innerHTML = `
       <div class="essays-toolbar">
-        <div class="essays-filter-pills" role="group" aria-label="Filter essays by domain">
+        <div class="essays-filter-pills" role="group" aria-label="Filter essays by topic">
           <button
             type="button"
             class="filter-pill ${activeDomain === 'all' ? 'is-active' : ''}"
@@ -61,10 +61,10 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
             type="search"
             id="essays-search"
             class="graph-search"
-            placeholder="Search 33 essays..."
+            placeholder="Search ${essays.length} essays..."
             value="${escapeHtml(searchQuery)}"
             autocomplete="off"
-            aria-label="Filter published essays"
+            aria-label="Search essays"
           />
           <span class="search-count">${filtered.length}</span>
         </div>
@@ -100,7 +100,7 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
                             type="button"
                             class="essay-node-chip"
                             data-essay-jump-node="${n.id}"
-                            title="Focus ${escapeHtml(n.title)} in graph"
+                            title="Show ${escapeHtml(n.title)} on the map"
                           >
                             ${escapeHtml(n.title)}
                           </button>
@@ -109,10 +109,10 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
                           .join('')}
                       </div>
                       ${
-                        essay.excerpt
+                        linkedNodes.length > 0
                           ? `<details class="essay-excerpt-details">
-                               <summary>Summary</summary>
-                               <p>${escapeHtml(essay.excerpt)}</p>
+                               <summary>The idea in one line</summary>
+                               <p>${escapeHtml(linkedNodes[0].aphorism)}</p>
                              </details>`
                           : ''
                       }
@@ -128,7 +128,7 @@ export function initEssaysIndex(rootEl, essays, nodeMap, onSelectNode) {
           ? `
         <div class="essays-more-row">
           <button type="button" class="btn-ghost" id="essays-toggle-all">
-            ${showAll ? 'Show compact list (8)' : `Show all ${filtered.length} essays (+${hiddenCount} more)`}
+            ${showAll ? 'Show fewer' : `Show all ${filtered.length} essays (+${hiddenCount} more)`}
           </button>
         </div>
       `

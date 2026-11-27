@@ -6,26 +6,26 @@
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=2" />
     <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
-    <title>Mental Tree &amp; Deep Research Atlas — Mohammed KM</title>
+    <title>Mental Tree &amp; Idea Atlas | Mohammed KM</title>
     <meta
       name="description"
-      content="48 cross-domain mental models, 33 published essays from mohammed-km.in, a 4-lens first-principles stress-tester, and a 17-volume canonical bookshelf by Mohammed KM."
+      content="A map of 53 ideas from Mohammed's own essays and notes, from genes and batteries to habits and trust, plus a four-question idea check and 33 essays."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://explore.mohammed-km.in/" />
-    <meta property="og:title" content="Mental Tree &amp; Deep Research Atlas — Mohammed KM" />
+    <meta property="og:title" content="Mental Tree &amp; Idea Atlas | Mohammed KM" />
     <meta
       property="og:description"
-      content="48 cross-domain mental models, 33 published essays, a 4-lens first-principles stress-tester, and 17 foundational volumes by Mohammed KM."
+      content="A map of 53 ideas from Mohammed's own essays and notes, from genes and batteries to habits and trust, plus a four-question idea check and 33 essays."
     />
     <meta property="og:image" content="https://explore.mohammed-km.in/og-card.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Mental Tree &amp; Deep Research Atlas — Mohammed KM" />
+    <meta name="twitter:title" content="Mental Tree &amp; Idea Atlas | Mohammed KM" />
     <meta
       name="twitter:description"
-      content="48 cross-domain mental models, 33 published essays, a 4-lens first-principles stress-tester, and 17 foundational volumes by Mohammed KM."
+      content="A map of 53 ideas from Mohammed's own essays and notes, from genes and batteries to habits and trust, plus a four-question idea check and 33 essays."
     />
     <meta name="twitter:image" content="https://explore.mohammed-km.in/og-card.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -47,10 +47,9 @@
           <span class="mkm-brand-name">Mental Tree &amp; Idea Atlas</span>
         </div>
         <nav class="site-nav" aria-label="Primary navigation">
-          <a href="#observatory" class="is-active">Graph</a>
-          <a href="#stress-tester">4-Lens Rubric</a>
+          <a href="#observatory" class="is-active">Idea map</a>
+          <a href="#stress-tester">Idea check</a>
           <a href="#essays">Essays</a>
-          <a href="#bookshelf">Books</a>
         </nav>
       </div>
     </header>
@@ -61,18 +60,23 @@
         <div class="container">
           <div class="hero-strip">
             <div class="hero-headline">
-              <h1>How systems work, break, and compound.</h1>
+              <h1>How things work, break and grow.</h1>
               <p class="hero-sub">
-                Drag nodes, bridge any two distant concepts across 33 essays &amp; 17 books, or drop your own thesis live onto the graph.
+                A map of the ideas Mohammed keeps coming back to, taken from his own essays and notes.
               </p>
             </div>
-            <div class="hero-stats" aria-label="Atlas index counts">
-              <span class="stat-pill"><strong id="stat-nodes">48</strong> models</span>
-              <span class="stat-pill"><strong id="stat-bridges">55+</strong> bridges</span>
+            <div class="hero-stats" aria-label="Map size">
+              <span class="stat-pill"><strong id="stat-nodes">53</strong> ideas</span>
+              <span class="stat-pill"><strong id="stat-bridges">64</strong> links across topics</span>
               <a href="#essays" class="stat-pill stat-pill-link"><strong id="stat-essays">33</strong> essays</a>
-              <a href="#bookshelf" class="stat-pill stat-pill-link"><strong>17</strong> books</a>
             </div>
           </div>
+
+          <ol class="story-steps" aria-label="How to use the idea map">
+            <li><strong>What this is</strong> <span><span class="js-node-count">53</span> ideas, from genes and batteries to habits and trust, each one from Mohammed's own essays or notes.</span></li>
+            <li><strong>How it works</strong> <span>Each dot is one idea, coloured by topic. Lines show how ideas connect, so you can walk from physics to psychology in a few steps.</span></li>
+            <li><strong>Try this first</strong> <span>Click any glowing dot to read the idea in one line, then follow its links. Or press <em>Quantum &rarr; Dopamine</em> below the map.</span></li>
+          </ol>
 
           <!-- Filter & Search Row -->
           <div class="graph-toolbar">
@@ -86,32 +90,27 @@
                 type="search"
                 id="graph-search"
                 class="graph-search"
-                placeholder="Search concepts or thinkers (/)"
+                placeholder="Search ideas (/)"
                 autocomplete="off"
-                aria-label="Search knowledge graph nodes"
+                aria-label="Search the idea map"
               />
-              <span class="search-count" id="search-count">48 nodes</span>
+              <span class="search-count" id="search-count">53 ideas</span>
             </div>
-          </div>
-
-          <div class="active-book-banner" id="active-book-banner" hidden>
-            <span id="active-book-text"></span>
-            <button type="button" class="btn-mini" id="clear-book-filter">Clear Filter</button>
           </div>
 
           <!-- Interactive Force-Directed Canvas Stage -->
           <div class="observatory-stage" id="observatory-stage">
-            <canvas id="graph-canvas" aria-label="Interactive force-directed knowledge graph"></canvas>
+            <canvas id="graph-canvas" aria-label="Interactive map of ideas. Click a dot to read it."></canvas>
 
             <div class="graph-tooltip" id="graph-tooltip" hidden></div>
 
             <div class="graph-hud-bottom">
               <div class="hud-toggles">
                 <button type="button" class="hud-btn" id="toggle-cross-only" aria-pressed="false">
-                  Cross-Domain Only
+                  Only links between topics
                 </button>
                 <button type="button" class="hud-btn" id="toggle-labels" aria-pressed="false">
-                  All Labels
+                  Show all names
                 </button>
               </div>
               <div class="hud-zoom">
@@ -122,13 +121,13 @@
             </div>
 
             <!-- Slide-over Concept Drawer -->
-            <aside class="concept-drawer" id="concept-drawer" aria-hidden="true" aria-label="Concept details">
+            <aside class="concept-drawer" id="concept-drawer" aria-hidden="true" aria-label="Idea details">
               <div class="drawer-header">
                 <div class="drawer-meta-row">
                   <span class="drawer-domain-badge" id="drawer-domain"></span>
                   <span class="drawer-code" id="drawer-code"></span>
                 </div>
-                <button type="button" class="drawer-close" id="drawer-close" aria-label="Close concept drawer">&times;</button>
+                <button type="button" class="drawer-close" id="drawer-close" aria-label="Close idea details">&times;</button>
               </div>
               <div class="drawer-body" id="drawer-body"></div>
             </aside>
@@ -140,20 +139,20 @@
             <div class="lab-card" id="bridge-panel">
               <div class="lab-card-head">
                 <div>
-                  <span class="eyebrow">Shortest-Path Concept Bridge</span>
-                  <p class="lab-sub">Pick any 2 distant concepts to trace the shortest path across essays &amp; books.</p>
+                  <span class="eyebrow">Connect two ideas</span>
+                  <p class="lab-sub">Pick two ideas and see the shortest chain of links between them, plus the essays along the way.</p>
                 </div>
-                <button type="button" class="btn-mini" id="bridge-clear" hidden>Clear Bridge</button>
+                <button type="button" class="btn-mini" id="bridge-clear" hidden>Clear</button>
               </div>
 
               <div class="bridge-controls">
-                <select id="bridge-start" class="lab-select" aria-label="Starting concept"></select>
+                <select id="bridge-start" class="lab-select" aria-label="Starting idea"></select>
                 <span class="bridge-arrow" aria-hidden="true">&rarr;</span>
-                <select id="bridge-end" class="lab-select" aria-label="Target concept"></select>
-                <button type="button" class="btn-primary lab-btn" id="bridge-run">Trace Path</button>
+                <select id="bridge-end" class="lab-select" aria-label="Ending idea"></select>
+                <button type="button" class="btn-primary lab-btn" id="bridge-run">Show the chain</button>
               </div>
 
-              <div class="bridge-presets" aria-label="Quick distant concept bridges">
+              <div class="bridge-presets" aria-label="Example idea pairs">
                 <span class="presets-label">Try:</span>
                 <button
                   type="button"
@@ -169,15 +168,15 @@
                   data-bridge-start="first-principles-physics"
                   data-bridge-end="character-invariants"
                 >
-                  Physics Floor &rarr; Character
+                  Raw materials &rarr; Trust
                 </button>
                 <button
                   type="button"
                   class="preset-chip"
-                  data-bridge-start="strange-loops"
-                  data-bridge-end="medicine-3-0"
+                  data-bridge-start="biology-as-information"
+                  data-bridge-end="shared-stories"
                 >
-                  Strange Loops &rarr; Medicine 3.0
+                  Genes &rarr; Shared stories
                 </button>
               </div>
 
@@ -188,10 +187,10 @@
             <div class="lab-card" id="thesis-panel">
               <div class="lab-card-head">
                 <div>
-                  <span class="eyebrow">Drop Custom Thesis Node</span>
-                  <p class="lab-sub">Test where your own idea attaches on the live force-directed graph.</p>
+                  <span class="eyebrow">Add your own idea</span>
+                  <p class="lab-sub">Type an idea and see which ideas on the map it links to. It is only kept in your browser.</p>
                 </div>
-                <button type="button" class="btn-mini" id="thesis-remove" hidden>Remove Node</button>
+                <button type="button" class="btn-mini" id="thesis-remove" hidden>Remove</button>
               </div>
 
               <form class="thesis-form" id="thesis-drop-form">
@@ -199,15 +198,15 @@
                   type="text"
                   id="thesis-input"
                   class="lab-input"
-                  placeholder="e.g., Local-first AI agents for small clinics"
+                  placeholder="e.g. A habit app for better sleep"
                   autocomplete="off"
-                  aria-label="Custom thesis to drop onto the graph"
+                  aria-label="Your idea"
                 />
                 <div class="thesis-form-row">
-                  <select id="thesis-domain" class="lab-select" aria-label="Thesis domain">
-                    <option value="auto">Domain: Auto-detect</option>
+                  <select id="thesis-domain" class="lab-select" aria-label="Topic for your idea">
+                    <option value="auto">Topic: pick for me</option>
                   </select>
-                  <button type="submit" class="btn-primary lab-btn">Drop on Graph</button>
+                  <button type="submit" class="btn-primary lab-btn">Add to map</button>
                 </div>
               </form>
 
@@ -217,68 +216,56 @@
         </div>
       </section>
 
-      <!-- Section 2: Interactive 4-Lens First-Principles Stress-Tester -->
+      <!-- Section 2: Four-question idea check -->
       <section id="stress-tester" class="section">
         <div class="container">
           <div class="section-head">
             <div>
-              <p class="eyebrow">02 &middot; First-Principles Rubric</p>
-              <h2>4-Lens Stress-Tester</h2>
+              <p class="eyebrow">02 &middot; Idea check</p>
+              <h2>Four questions for any idea</h2>
             </div>
-            <p class="section-desc">
-              Score a thesis live across Deutsch, Taleb, Musk, and Meadows, then drop it onto the graph.
-            </p>
           </div>
+          <ol class="story-steps" aria-label="How the idea check works">
+            <li><strong>What this is</strong> <span>A quick check for a business or project idea, using four questions drawn from the map above.</span></li>
+            <li><strong>How it works</strong> <span>Each question scores up to 25 points from a short checklist, for 100 in total. Ticking or unticking a box changes the score straight away.</span></li>
+            <li><strong>Try this first</strong> <span>Pick the <em>Longevity Clinic</em> example, then open any card's checklist and tick a box to watch the score move.</span></li>
+          </ol>
           <div id="stress-tester-root"></div>
         </div>
       </section>
 
-      <!-- Section 3: Compact Published Essays Index -->
+      <!-- Section 3: Essays -->
       <section id="essays" class="section">
         <div class="container">
           <div class="section-head">
             <div>
-              <p class="eyebrow">03 &middot; Published Writing</p>
-              <h2>33 Essays on mohammed-km.in</h2>
+              <p class="eyebrow">03 &middot; Essays</p>
+              <h2>The essays behind the map</h2>
             </div>
-            <p class="section-desc">
-              Filter by discipline or tap any concept chip to jump straight to that node on the graph.
-            </p>
           </div>
+          <ol class="story-steps" aria-label="How to use the essay list">
+            <li><strong>What this is</strong> <span>Mohammed's <span id="essay-count-copy">33</span> published essays on <a href="https://www.mohammed-km.in/" target="_blank" rel="noopener noreferrer">mohammed-km.in</a>, grouped by topic.</span></li>
+            <li><strong>How it works</strong> <span>Each essay lists the ideas on the map that it explains. The title opens the full essay.</span></li>
+            <li><strong>Try this first</strong> <span>Tap an idea chip under any essay to jump to that dot on the map.</span></li>
+          </ol>
           <div id="essays-root"></div>
         </div>
       </section>
 
-      <!-- Section 4: Compact Canonical Bookshelf -->
-      <section id="bookshelf" class="section">
-        <div class="container">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">04 &middot; Reading Canon</p>
-              <h2>17 Canonical Volumes</h2>
-            </div>
-            <p class="section-desc">
-              Foundational texts distilled to their operative mental models and linked to the graph.
-            </p>
-          </div>
-          <div id="bookshelf-root"></div>
-        </div>
-      </section>
     </main>
 
     <footer class="site-footer">
       <div class="container footer-inner">
         <div>
-          <p class="footer-title">Mental Tree &amp; Deep Research Atlas</p>
+          <p class="footer-title">Mental Tree &amp; Idea Atlas</p>
           <p class="footer-note">
-            Curated by Mohammed KM. 100% client-side, zero external APIs.
+            Built from Mohammed's own essays and notes. Everything runs in your browser.
           </p>
         </div>
         <div class="footer-links">
-          <a href="#observatory">Graph</a>
-          <a href="#stress-tester">4-Lens Rubric</a>
-          <a href="#essays">33 Essays</a>
-          <a href="#bookshelf">17 Books</a>
+          <a href="#observatory">Idea map</a>
+          <a href="#stress-tester">Idea check</a>
+          <a href="#essays">Essays</a>
         </div>
       </div>
     </footer>
