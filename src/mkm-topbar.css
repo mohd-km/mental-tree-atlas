@@ -67,3 +67,5 @@
   min-width: 0;
   text-wrap: balance;
 }
+
+em, i, cite, q, blockquote { font-style: normal !important; }
