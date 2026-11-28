@@ -1,5 +1,6 @@
 // Four plain questions for checking an idea. Each lens draws on ideas from the map:
-// good explanations, risk and fragility, deleting before automating, and fast feedback.
+// good explanations, risk and fragility, deleting before automating, and systems thinking
+// (change the rules, not the numbers).
 // Internal ids (deutsch, taleb, musk, meadows) are kept for stability; they are never shown.
 export const LENS_META = [
   {
@@ -28,9 +29,9 @@ export const LENS_META = [
   },
   {
     id: 'meadows',
-    short: 'Feedback',
-    title: 'Does it learn fast?',
-    term: 'feedback loops',
+    short: 'Systems',
+    title: 'Does it change the rules?',
+    term: 'systems thinking: change the rules, not the numbers',
     color: '#0f766e',
     question: 'Does it only tweak numbers like price or speed, or does it change how quickly people see results and who gains?'
   }
