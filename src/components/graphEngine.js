@@ -863,7 +863,7 @@ export class ObservatoryGraph {
         ctx.fillText(String(bridgeIdx + 1), bx, by + 0.5);
       }
 
-      // Labels — clean dark ink with paper halo for effortless legibility
+      // Labels: dark ink with a paper halo so they stay readable
       const showLabel = isMobile
         ? this.showAllLabels ||
           isFocused ||

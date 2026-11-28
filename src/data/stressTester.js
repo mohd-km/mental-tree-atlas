@@ -9,7 +9,7 @@ export const LENS_META = [
     title: 'Is the reason solid?',
     term: 'good explanation test',
     color: '#0369a1',
-    question: 'If you swapped out the key reason, would the idea fall apart? If not, the reason is a slogan, not an explanation.'
+    question: 'If you swapped out the key reason, would the idea fall apart? If not, the reason is a slogan rather than an explanation.'
   },
   {
     id: 'taleb',
@@ -52,7 +52,7 @@ export const SAMPLE_THESES = [
         directive: 'Build on something hard to copy: rule checks that are always right, a private record of past audits, or deep links into the firm\'s own systems.',
         checks: [
           { label: 'Its core reason to exist is more than a clever AI prompt', pass: false, weight: 8 },
-          { label: 'Explains why big existing players cannot simply do the same', pass: true, weight: 8 },
+          { label: 'Explains why big existing players cannot do the same', pass: true, weight: 8 },
           { label: 'Has a clear accuracy test on real, messy cases', pass: false, weight: 5 },
           { label: 'Still valuable if AI models get twice as smart tomorrow', pass: false, weight: 4 }
         ]
@@ -88,7 +88,7 @@ export const SAMPLE_THESES = [
         failureMode: 'Faster drafts just pile up in front of the same slow approval step.',
         directive: 'Show live warnings to the people doing the work, before any paperwork is even written.',
         checks: [
-          { label: 'Changes how people get feedback, not just a number', pass: false, weight: 8 },
+          { label: 'Changes how people get feedback (more than a number tweak)', pass: false, weight: 8 },
           { label: 'Shortens the time between a mistake and spotting it', pass: true, weight: 9 },
           { label: 'Gets better the more it is used', pass: false, weight: 4 },
           { label: 'Buyer, checker and daily user all want the same outcome', pass: false, weight: 4 }
@@ -112,7 +112,7 @@ export const SAMPLE_THESES = [
           { label: 'Directly solves waiting time and upfront battery cost', pass: true, weight: 7 },
           { label: 'Explains why fast charging will not replace it within 5 years', pass: false, weight: 6 },
           { label: 'A shared battery standard is agreed, not assumed', pass: true, weight: 6 },
-          { label: 'The numbers work for each station, not just on average', pass: true, weight: 6 }
+          { label: 'The numbers work station by station, as well as on average', pass: true, weight: 6 }
         ]
       },
       taleb: {
@@ -227,7 +227,7 @@ export const SAMPLE_THESES = [
         checks: [
           { label: 'Plans for the 1-2% of awkward items it will miss', pass: false, weight: 10 },
           { label: 'Price per pick beats the full cost of a human picker', pass: true, weight: 5 },
-          { label: 'Hardware and software designed together, not bolted on', pass: true, weight: 5 },
+          { label: 'Hardware and software built together from day one', pass: true, weight: 5 },
           { label: 'Works without rebuilding the warehouse', pass: true, weight: 5 }
         ]
       },
@@ -240,7 +240,7 @@ export const SAMPLE_THESES = [
           { label: 'Minimum-use contracts protect the business in slow months', pass: false, weight: 9 },
           { label: 'Uses standard parts where custom parts add nothing', pass: true, weight: 5 },
           { label: 'A remote human can take over to avoid long stoppages', pass: true, weight: 5 },
-          { label: 'Every failure teaches every robot, not just one', pass: false, weight: 6 }
+          { label: 'One robot\'s failure teaches the whole fleet', pass: false, weight: 6 }
         ]
       },
       musk: {
@@ -365,7 +365,7 @@ export function analyzeCustomThesis(rawText) {
   // 1. Is the reason solid?
   const deutschChecks = [
     {
-      label: 'Names a clear "because", not just buzzwords',
+      label: 'Names a clear "because" instead of buzzwords',
       pass: isSpecific && !hasBuzzwords
     },
     {
@@ -448,7 +448,7 @@ export function analyzeCustomThesis(rawText) {
       pass: !hasBuzzwords && isSpecific
     },
     {
-      label: 'Aims for about ten times better speed, cost or reliability',
+      label: 'Targets about ten times better speed, cost or reliability',
       pass: hasAI || hasHardware || hasNumbers
     }
   ];
@@ -475,7 +475,7 @@ export function analyzeCustomThesis(rawText) {
 
   const meadowsChecks = [
     {
-      label: 'Changes feedback, rules or goals, not just a number',
+      label: 'Changes feedback, rules or goals (more than a number tweak)',
       pass: hasFeedbackLoop || hasBio || hasMarket
     },
     {
@@ -492,7 +492,7 @@ export function analyzeCustomThesis(rawText) {
     }
   ];
 
-  const meadowsSummary = `Where it pushes: ${leverageLevel}. Ideas that last change who sees results and how fast, not just the price.`;
+  const meadowsSummary = `Where it pushes: ${leverageLevel}. Ideas that last change who sees results and how fast. A price cut alone gets copied.`;
 
   const meadowsFailure =
     'Slow onboarding, long approvals or a rival\'s price cut quietly soak up the early progress.';
@@ -536,7 +536,7 @@ export function computeVerdict(totalScore) {
       band: 'Strong and sturdy',
       tone: 'high',
       summary:
-        'A clear reason, limited downside, a lean design and fast feedback. Now it is about doing the work and measuring it.'
+        'Clear reason, limited downside, lean design and fast feedback. What is left is doing the work and measuring it.'
     };
   }
   if (totalScore >= 62) {
@@ -559,6 +559,6 @@ export function computeVerdict(totalScore) {
     band: 'Fragile for now',
     tone: 'low',
     summary:
-      'The reason is easy to swap out, a single shock could sink it, and it changes little. Rebuild it from the raw costs and the real customer problem.'
+      'A single shock could sink it, and the reason behind it is easy to swap out. Rebuild it from the raw costs and the real customer problem.'
   };
 }
